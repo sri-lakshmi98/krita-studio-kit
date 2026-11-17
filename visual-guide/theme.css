@@ -1,0 +1,132 @@
+/* ui-style theme: light + dark tokens and the shared components.
+   Paste it inline into the page's <style> (pages stay one shareable file).
+   With no data-theme on <html> it follows the system; data-theme="light"|"dark" overrides.
+   Palette = the gibp-step-walkthrough one the user loved (paper, teal, $ blue, ¥ orange). */
+:root {
+  color-scheme: light dark;
+  --bg: light-dark(#f7f6f2, #151817);      --card: light-dark(#fff, #1d2120);
+  --soft: light-dark(#f1f4f2, #232927);    --head: light-dark(#eaf0ed, #252c2a);
+  --ink: light-dark(#1f2523, #e6eae8);     --mut: light-dark(#66706c, #9aa4a0);
+  --line: light-dark(#e6e3da, #2d3331);    --scroll: light-dark(#cdc7bc, #3d3a34);
+  --acc: light-dark(#0f6e5a, #56c2a6);     --acc-soft: light-dark(#e3f2ed, #1d3530);
+  --on-acc: light-dark(#fff, #0c1f1a);
+  --usd: light-dark(#2f5fb3, #7aa2ff);     --jpy: light-dark(#b5651d, #f0a35e);
+  --bank: light-dark(#5b5bd6, #a5a5ff);    --bank-soft: light-dark(#ecebff, #26264a);
+  --up: light-dark(#1b7a3d, #7bd88f);      --dn: light-dark(#b3261e, #ff8a80);
+  --bad-bg: light-dark(#fbe9e7, #3a2220);
+  --warn: light-dark(#8a5300, #f0b35a);    --warn-bg: light-dark(#fff5e3, #30261a);
+  --r: 16px; --r-in: 10px; --fast: 150ms; --mid: 220ms;
+  --mono: ui-monospace, Menlo, Consolas, monospace;
+}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
+/* base */
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.wrap { max-width: 1000px; margin: 0 auto; padding: 22px 18px 60px; }
+h1 { font-size: 24px; margin: 0; }
+h2 { font-size: 20px; margin: 0 0 6px; }
+h3 { font-size: 12.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--mut); margin: 18px 0 8px; }
+.sub { color: var(--mut); font-size: 13.5px; margin: 2px 0 12px; }
+.mut { color: var(--mut); }
+a { color: var(--acc); }
+code { font: 12.5px var(--mono); }
+.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.usd { color: var(--usd); } .jpy { color: var(--jpy); } .up { color: var(--up); } .dn { color: var(--dn); }
+:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+
+/* scrollbars follow the theme (user, 2026-10-15) */
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); background-clip: padding-box; border: 3px solid transparent; border-radius: 999px; }
+@supports not selector(::-webkit-scrollbar) { html { scrollbar-color: var(--scroll) transparent; } }
+
+/* layout: top row, sticky step bar, list-left / detail-right split */
+.top { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.bar { position: sticky; top: 0; z-index: 2; background: var(--bg); display: flex; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.split { display: grid; grid-template-columns: 280px 1fr; gap: 18px; align-items: start; }
+.item { display: flex; justify-content: space-between; gap: 8px; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
+.item:hover { background: var(--soft); }
+.item.on { background: var(--acc-soft); color: var(--acc); font-weight: 600; }
+@media (max-width: 820px) { .split { grid-template-columns: 1fr; } }
+
+/* cards and number tiles */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 20px 22px; }
+.card + .card { margin-top: 14px; }
+.grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.tiles { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); margin: 12px 0; }
+.tile { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; }
+.tile b { display: block; font-size: 24px; line-height: 1.15; color: var(--acc); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.tile span { font-size: 13px; color: var(--mut); }
+
+/* buttons, step pills, theme switch */
+button, .btn { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: var(--r-in); padding: 6px 12px; cursor: pointer; transition: background var(--fast); }
+button:hover, .btn:hover { background: var(--soft); }
+button:disabled { opacity: .35; cursor: default; }
+.btn.primary { background: var(--acc); border-color: var(--acc); color: var(--on-acc); }
+.pill { border: 0; background: none; color: var(--mut); border-radius: 8px; padding: 3px 7px; font: 600 12.5px/1.2 var(--mono); }
+.pill.on { background: var(--acc); color: var(--on-acc); }
+.theme-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.theme-toggle svg { width: 15px; height: 15px; }
+.theme-toggle.float { position: fixed; top: 12px; right: 14px; z-index: 20; }
+
+/* chips: colour says the family, so no names or numbers are needed */
+.chip { display: inline-flex; align-items: center; gap: 4px; border: 1px solid transparent; border-radius: 999px; padding: 0 9px; font-size: 12px; font-weight: 600; background: var(--soft); color: var(--mut); white-space: nowrap; }
+.chip.acc { background: var(--acc-soft); color: var(--acc); }
+.chip.bank { background: var(--bank-soft); color: var(--bank); }
+.chip.warn { background: var(--warn-bg); color: var(--warn); }
+.chip.bad { background: var(--bad-bg); color: var(--dn); }
+.chip.usd, .chip.jpy, .chip.line { background: none; border-color: currentColor; }
+.chip.dashed { background: none; border: 1px dashed currentColor; }
+
+/* rectangular tabs (user, 2026-11-16) */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: 12px 0; }
+.tab { border: 1px solid var(--line); border-bottom: 0; border-radius: 4px 4px 0 0; background: var(--soft); color: var(--mut); padding: 7px 14px; font-weight: 600; margin-bottom: -1px; }
+.tab.on, .tab[aria-selected="true"] { background: var(--card); color: var(--ink); box-shadow: inset 0 2px 0 var(--acc); }
+
+/* tables: header stands apart from the page; amounts right-aligned */
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { background: var(--head); font-size: 12.5px; font-weight: 600; text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); }
+td { padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th.num, td.num { text-align: right; }
+tbody tr:hover { background: var(--soft); }
+
+/* depth behind a click */
+details { border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; background: var(--card); }
+details + details { margin-top: 8px; }
+summary { cursor: pointer; font-weight: 600; color: var(--acc); list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "\25B8"; display: inline-block; margin-right: 6px; transition: transform var(--fast); }
+details[open] > summary::before { transform: rotate(90deg); }
+details[open] > summary { margin-bottom: 8px; }
+
+/* teaching boxes: new word, doubtful, the working, dotted terms, remarks */
+.word { border-left: 3px solid var(--acc); padding: 4px 12px; margin: 0 0 12px; }
+.word b { color: var(--acc); }
+.doubt { background: var(--warn-bg); border-radius: var(--r-in); padding: 8px 14px; }
+.doubt > b:first-child { color: var(--warn); }
+.math { background: var(--soft); border-radius: var(--r-in); padding: 8px 12px; font-variant-numeric: tabular-nums; }
+.term { border-bottom: 1.5px dotted var(--acc); cursor: help; position: relative; }
+.term[data-tip]:hover::after, .term[data-tip]:focus::after { content: attr(data-tip); position: absolute; left: 0; top: calc(100% + 6px); z-index: 30; width: max-content; max-width: 280px; background: var(--ink); color: var(--bg); border-radius: 8px; padding: 6px 9px; font-size: 13px; font-weight: 400; }
+textarea, input, select { font: inherit; color: var(--ink); background: var(--soft); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+
+/* flows: boxes joined by dashed links; a check (an `if`) is its own amber box */
+.flow { display: flex; align-items: center; overflow-x: auto; padding: 6px 0; }
+.node { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; text-align: center; min-width: 110px; }
+.node small { display: block; color: var(--mut); font-size: 12px; }
+.node.on { border-color: var(--acc); box-shadow: 0 0 0 3px var(--acc-soft); }
+.node.check { border: 1.5px dashed var(--warn); background: var(--warn-bg); }
+.link { flex: 1; min-width: 36px; height: 2px; background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 11px); }
+.link.on { background: repeating-linear-gradient(90deg, var(--acc) 0 6px, transparent 6px 11px); background-size: 22px 2px; }
+.live::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: currentColor; }
+
+/* motion only where it explains something, never for people who asked for less */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal { animation: ui-in var(--mid) ease both; }
+  .link.on { animation: ui-run .9s linear infinite; }
+  .live::before { animation: ui-pulse 1.2s ease-in-out infinite; }
+}
+@keyframes ui-in { from { opacity: 0; transform: translateY(8px); } }
+@keyframes ui-run { to { background-position: 22px 0; } }
+@keyframes ui-pulse { 50% { opacity: .25; } }
