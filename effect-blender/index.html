@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Effect Blender</title>
+<meta name="description" content="Add paper texture, grain, glow, snow, titles and more to Krita drawings and animations. Runs in your browser.">
+<script>try{const t=localStorage.getItem('ui-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(_){}</script>
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top app-top">
+  <div>
+    <h1>Effect Blender</h1>
+    <p class="sub">Effects for Krita drawings and animations. Nothing leaves your computer.</p>
+  </div>
+  <button data-theme-toggle hidden></button>
+</header>
+
+<noscript><p class="card nojs">Effect Blender needs JavaScript turned on.</p></noscript>
+
+<main class="app">
+  <section class="stage card" aria-label="Preview">
+    <div class="screen"><canvas id="view" width="540" height="960" aria-label="Preview of your clip with effects"></canvas></div>
+    <div class="transport">
+      <button id="playBtn" class="btn primary play" aria-label="Play">▶</button>
+      <button id="prevBtn" class="ib" aria-label="Previous frame" title="Previous frame">‹</button>
+      <input id="scrub" type="range" min="0" max="1" step="0.01" value="0" aria-label="Time">
+      <button id="nextBtn" class="ib" aria-label="Next frame" title="Next frame">›</button>
+    </div>
+    <div class="under">
+      <span id="time" class="num mut"></span>
+      <span class="keys mut"><kbd>Space</kbd> play · <kbd>←</kbd><kbd>→</kbd> frame</span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="clip" aria-selected="true">Clip</button>
+      <button class="tab" role="tab" data-tab="fx" aria-selected="false">Effects (<span id="fxCount">0</span>)</button>
+      <button class="tab" role="tab" data-tab="out" aria-selected="false">Export</button>
+    </div>
+
+    <!-- 1. Clip -->
+    <div class="pane card" id="pane-clip">
+      <div id="dropzone" class="dropzone">
+        <b>Drop your Krita export here</b>
+        <span class="mut">a video, all PNG frames at once, or one picture</span>
+        <button id="pickBtn" class="btn primary">Choose files</button>
+      </div>
+      <input id="pick" type="file" multiple accept="video/*,image/*,.json" hidden>
+      <p class="info"><span id="clipInfo"></span> <button id="clearClip" class="linkbtn" hidden>Use sample</button></p>
+
+      <h3>Size</h3>
+      <div class="seg sizes" id="sizeSeg">
+        <button data-v="reel"><i class="shape" style="aspect-ratio:9/16"></i>Reel<small>1080×1920</small></button>
+        <button data-v="square"><i class="shape" style="aspect-ratio:1"></i>Square<small>1080×1080</small></button>
+        <button data-v="youtube"><i class="shape" style="aspect-ratio:16/9"></i>YouTube<small>1920×1080</small></button>
+      </div>
+
+      <div class="row"><span class="lbl">Picture</span>
+        <div class="seg" id="fitSeg"><button data-v="fill" title="Fill the frame, crop the edges">Fill</button><button data-v="fit" title="Show everything, add borders">Fit</button></div><span></span></div>
+      <div class="row"><label for="bg">Background</label><input id="bg" type="color" value="#ffffff"><span></span></div>
+      <div class="row"><label for="fps" id="fpsLabel">Frames per second</label>
+        <select id="fps"><option>6</option><option>8</option><option>10</option><option>12</option><option>15</option><option>24</option><option>25</option><option>30</option><option>60</option></select><span></span></div>
+      <div class="row" id="stillRow"><label for="still">Length</label><input id="still" type="range" min="1" max="30" step="0.5" value="5"><output id="stillOut" class="num"></output></div>
+      <label class="check"><input id="sharp" type="checkbox"> Sharp preview <span class="mut">(slower)</span></label>
+    </div>
+
+    <!-- 2. Effects -->
+    <div class="pane card" id="pane-fx" hidden>
+      <h3>One-click looks</h3>
+      <div class="presets" id="presets"></div>
+      <h3>Your effects <span class="mut lower">· top runs first</span></h3>
+      <select id="addFx" class="add" aria-label="Add an effect"><option value="">+ Add an effect…</option></select>
+      <p id="stackEmpty" class="mut">No effects yet. Pick a look above or add one.</p>
+      <ol id="stack" class="stack"></ol>
+      <p id="filterNote" class="doubt small" hidden><b>Note:</b> this browser has no canvas filters, so colour and glow use a slower method.</p>
+      <div class="foot"><button id="clearFx" class="linkbtn">Remove all</button></div>
+    </div>
+
+    <!-- 3. Export -->
+    <div class="pane card" id="pane-out" hidden>
+      <h3>Video</h3>
+      <p id="outInfo" class="info num"></p>
+      <div id="soundRow" class="sound" hidden>
+        <label class="check"><input id="keepSound" type="checkbox" checked> Keep the clip's sound</label>
+        <p id="soundNote" class="mut small"></p>
+      </div>
+      <div class="btns">
+        <button id="makeVideo" class="btn primary">Make video</button>
+        <button id="makePng" class="btn">Save this frame (PNG)</button>
+      </div>
+      <div id="progRow" class="prog" hidden>
+        <progress id="prog" max="1" value="0"></progress><span id="progText" class="num mut"></span>
+        <button id="cancelVideo" class="btn" hidden>Cancel</button>
+      </div>
+      <p id="exportHint" class="mut small"></p>
+      <p id="lastFile" class="small" hidden>Last video: <a id="lastLink" href="#">download again</a> <span id="lastInfo" class="mut"></span></p>
+
+      <details>
+        <summary>Need MP4 for Instagram or TikTok?</summary>
+        <p class="small">The video saves as WebM. Instagram converts it, but MP4 is safest. With <a href="https://ffmpeg.org/download.html" rel="noopener">ffmpeg</a>:</p>
+        <div class="cmd"><code id="ffmpeg"></code><button id="copyFf" class="btn">Copy</button></div>
+        <p id="soundFix" class="small mut" hidden>To add the sound back:<br><code>ffmpeg -i out.webm -i clip.mp4 -map 0:v -map 1:a -c:v copy -c:a libopus -shortest final.webm</code></p>
+      </details>
+
+      <h3>Project</h3>
+      <p class="mut small">Saves your effects and settings (not the clip). Your effects are also kept in this browser.</p>
+      <div class="btns">
+        <button id="saveProj" class="btn">Save project</button>
+        <button id="openProj" class="btn">Open project</button>
+        <input id="projFile" type="file" accept=".json,application/json" hidden>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="dropOverlay" class="drop-overlay" hidden><span>Drop to load</span></div>
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script src="theme-toggle.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

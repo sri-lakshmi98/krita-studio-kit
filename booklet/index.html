@@ -1,0 +1,1106 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Krita for 2D Animation and Short Videos: a beginner booklet</title>
+<meta name="description" content="A plain-words booklet: install Krita on Linux, draw children's-book art, animate, record timelapses and export Reels.">
+<script>try{const t=localStorage.getItem('ui-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(_){}</script>
+<style>
+/* ui-style theme: light + dark tokens and the shared components.
+   Paste it inline into the page's <style> (pages stay one shareable file).
+   With no data-theme on <html> it follows the system; data-theme="light"|"dark" overrides.
+   Palette = the gibp-step-walkthrough one the user loved (paper, teal, $ blue, ¥ orange). */
+:root {
+  color-scheme: light dark;
+  --bg: light-dark(#f7f6f2, #151817);      --card: light-dark(#fff, #1d2120);
+  --soft: light-dark(#f1f4f2, #232927);    --head: light-dark(#eaf0ed, #252c2a);
+  --ink: light-dark(#1f2523, #e6eae8);     --mut: light-dark(#66706c, #9aa4a0);
+  --line: light-dark(#e6e3da, #2d3331);    --scroll: light-dark(#cdc7bc, #3d3a34);
+  --acc: light-dark(#0f6e5a, #56c2a6);     --acc-soft: light-dark(#e3f2ed, #1d3530);
+  --on-acc: light-dark(#fff, #0c1f1a);
+  --usd: light-dark(#2f5fb3, #7aa2ff);     --jpy: light-dark(#b5651d, #f0a35e);
+  --bank: light-dark(#5b5bd6, #a5a5ff);    --bank-soft: light-dark(#ecebff, #26264a);
+  --up: light-dark(#1b7a3d, #7bd88f);      --dn: light-dark(#b3261e, #ff8a80);
+  --bad-bg: light-dark(#fbe9e7, #3a2220);
+  --warn: light-dark(#8a5300, #f0b35a);    --warn-bg: light-dark(#fff5e3, #30261a);
+  --r: 16px; --r-in: 10px; --fast: 150ms; --mid: 220ms;
+  --mono: ui-monospace, Menlo, Consolas, monospace;
+}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
+/* base */
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.wrap { max-width: 1000px; margin: 0 auto; padding: 22px 18px 60px; }
+h1 { font-size: 24px; margin: 0; }
+h2 { font-size: 20px; margin: 0 0 6px; }
+h3 { font-size: 12.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--mut); margin: 18px 0 8px; }
+.sub { color: var(--mut); font-size: 13.5px; margin: 2px 0 12px; }
+.mut { color: var(--mut); }
+a { color: var(--acc); }
+code { font: 12.5px var(--mono); }
+.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.usd { color: var(--usd); } .jpy { color: var(--jpy); } .up { color: var(--up); } .dn { color: var(--dn); }
+:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+
+/* scrollbars follow the theme (user, 2026-10-15) */
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); background-clip: padding-box; border: 3px solid transparent; border-radius: 999px; }
+@supports not selector(::-webkit-scrollbar) { html { scrollbar-color: var(--scroll) transparent; } }
+
+/* layout: top row, sticky step bar, list-left / detail-right split */
+.top { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.bar { position: sticky; top: 0; z-index: 2; background: var(--bg); display: flex; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.split { display: grid; grid-template-columns: 280px 1fr; gap: 18px; align-items: start; }
+.item { display: flex; justify-content: space-between; gap: 8px; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
+.item:hover { background: var(--soft); }
+.item.on { background: var(--acc-soft); color: var(--acc); font-weight: 600; }
+@media (max-width: 820px) { .split { grid-template-columns: 1fr; } }
+
+/* cards and number tiles */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 20px 22px; }
+.card + .card { margin-top: 14px; }
+.grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.tiles { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); margin: 12px 0; }
+.tile { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; }
+.tile b { display: block; font-size: 24px; line-height: 1.15; color: var(--acc); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.tile span { font-size: 13px; color: var(--mut); }
+
+/* buttons, step pills, theme switch */
+button, .btn { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: var(--r-in); padding: 6px 12px; cursor: pointer; transition: background var(--fast); }
+button:hover, .btn:hover { background: var(--soft); }
+button:disabled { opacity: .35; cursor: default; }
+.btn.primary { background: var(--acc); border-color: var(--acc); color: var(--on-acc); }
+.pill { border: 0; background: none; color: var(--mut); border-radius: 8px; padding: 3px 7px; font: 600 12.5px/1.2 var(--mono); }
+.pill.on { background: var(--acc); color: var(--on-acc); }
+.theme-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.theme-toggle svg { width: 15px; height: 15px; }
+.theme-toggle.float { position: fixed; top: 12px; right: 14px; z-index: 20; }
+
+/* chips: colour says the family, so no names or numbers are needed */
+.chip { display: inline-flex; align-items: center; gap: 4px; border: 1px solid transparent; border-radius: 999px; padding: 0 9px; font-size: 12px; font-weight: 600; background: var(--soft); color: var(--mut); white-space: nowrap; }
+.chip.acc { background: var(--acc-soft); color: var(--acc); }
+.chip.bank { background: var(--bank-soft); color: var(--bank); }
+.chip.warn { background: var(--warn-bg); color: var(--warn); }
+.chip.bad { background: var(--bad-bg); color: var(--dn); }
+.chip.usd, .chip.jpy, .chip.line { background: none; border-color: currentColor; }
+.chip.dashed { background: none; border: 1px dashed currentColor; }
+
+/* rectangular tabs (user, 2026-11-16) */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: 12px 0; }
+.tab { border: 1px solid var(--line); border-bottom: 0; border-radius: 4px 4px 0 0; background: var(--soft); color: var(--mut); padding: 7px 14px; font-weight: 600; margin-bottom: -1px; }
+.tab.on, .tab[aria-selected="true"] { background: var(--card); color: var(--ink); box-shadow: inset 0 2px 0 var(--acc); }
+
+/* tables: header stands apart from the page; amounts right-aligned */
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { background: var(--head); font-size: 12.5px; font-weight: 600; text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); }
+td { padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th.num, td.num { text-align: right; }
+tbody tr:hover { background: var(--soft); }
+
+/* depth behind a click */
+details { border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; background: var(--card); }
+details + details { margin-top: 8px; }
+summary { cursor: pointer; font-weight: 600; color: var(--acc); list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "\25B8"; display: inline-block; margin-right: 6px; transition: transform var(--fast); }
+details[open] > summary::before { transform: rotate(90deg); }
+details[open] > summary { margin-bottom: 8px; }
+
+/* teaching boxes: new word, doubtful, the working, dotted terms, remarks */
+.word { border-left: 3px solid var(--acc); padding: 4px 12px; margin: 0 0 12px; }
+.word b { color: var(--acc); }
+.doubt { background: var(--warn-bg); border-radius: var(--r-in); padding: 8px 14px; }
+.doubt > b:first-child { color: var(--warn); }
+.math { background: var(--soft); border-radius: var(--r-in); padding: 8px 12px; font-variant-numeric: tabular-nums; }
+.term { border-bottom: 1.5px dotted var(--acc); cursor: help; position: relative; }
+.term[data-tip]:hover::after, .term[data-tip]:focus::after { content: attr(data-tip); position: absolute; left: 0; top: calc(100% + 6px); z-index: 30; width: max-content; max-width: 280px; background: var(--ink); color: var(--bg); border-radius: 8px; padding: 6px 9px; font-size: 13px; font-weight: 400; }
+textarea, input, select { font: inherit; color: var(--ink); background: var(--soft); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+
+/* flows: boxes joined by dashed links; a check (an `if`) is its own amber box */
+.flow { display: flex; align-items: center; overflow-x: auto; padding: 6px 0; }
+.node { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; text-align: center; min-width: 110px; }
+.node small { display: block; color: var(--mut); font-size: 12px; }
+.node.on { border-color: var(--acc); box-shadow: 0 0 0 3px var(--acc-soft); }
+.node.check { border: 1.5px dashed var(--warn); background: var(--warn-bg); }
+.link { flex: 1; min-width: 36px; height: 2px; background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 11px); }
+.link.on { background: repeating-linear-gradient(90deg, var(--acc) 0 6px, transparent 6px 11px); background-size: 22px 2px; }
+.live::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: currentColor; }
+
+/* motion only where it explains something, never for people who asked for less */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal { animation: ui-in var(--mid) ease both; }
+  .link.on { animation: ui-run .9s linear infinite; }
+  .live::before { animation: ui-pulse 1.2s ease-in-out infinite; }
+}
+@keyframes ui-in { from { opacity: 0; transform: translateY(8px); } }
+@keyframes ui-run { to { background-position: 22px 0; } }
+@keyframes ui-pulse { 50% { opacity: .25; } }
+
+
+/* ---------- booklet-only rules ---------- */
+html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+.wrap { max-width: 1180px; }
+.book { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 26px; align-items: start; }
+.toc { position: sticky; top: 14px; max-height: calc(100vh - 28px); overflow-y: auto; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 10px; font-size: 13.5px; }
+.toc b { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--mut); padding: 0 8px 6px; }
+.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: c; }
+.toc li { counter-increment: c; }
+.toc a { display: flex; gap: 8px; padding: 5px 8px; border-radius: 8px; color: var(--ink); text-decoration: none; }
+.toc a::before { content: counter(c); font: 600 12px/1.6 var(--mono); color: var(--mut); min-width: 1.4em; text-align: right; }
+.toc a:hover { background: var(--soft); }
+.toc a.on { background: var(--acc-soft); color: var(--acc); font-weight: 600; }
+.toc .tools { display: flex; gap: 6px; padding: 10px 8px 2px; flex-wrap: wrap; }
+.toc .tools button { font-size: 12px; padding: 4px 8px; }
+@media (max-width: 860px) {
+  .book { grid-template-columns: 1fr; }
+  .toc { position: static; max-height: none; }
+  .toc ol { columns: 2; }
+}
+main > section { margin-bottom: 18px; scroll-margin-top: 14px; }
+.hero { padding: 26px 26px 20px; }
+.hero h1 { font-size: 30px; line-height: 1.2; }
+.hero p { max-width: 640px; }
+.kicker { font: 600 12px var(--mono); color: var(--acc); letter-spacing: .08em; text-transform: uppercase; }
+section.card h2 { display: flex; align-items: baseline; gap: 10px; font-size: 22px; }
+section.card h2 .n { font: 600 13px var(--mono); color: var(--on-acc); background: var(--acc); border-radius: 8px; padding: 2px 8px; }
+.goal { color: var(--mut); margin: 0 0 14px; }
+ol.steps { counter-reset: s; list-style: none; padding: 0; margin: 10px 0 14px; }
+ol.steps > li { counter-increment: s; position: relative; padding: 4px 0 6px 38px; }
+ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: 3px; width: 26px; height: 26px; border-radius: 50%; background: var(--acc-soft); color: var(--acc); font: 700 13px/26px var(--mono); text-align: center; }
+kbd { font: 600 12px var(--mono); background: var(--soft); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; padding: 1px 6px; white-space: nowrap; }
+.menu { font-weight: 600; color: var(--acc); white-space: nowrap; }
+pre { background: var(--soft); border-radius: var(--r-in); padding: 10px 14px; overflow-x: auto; margin: 8px 0; }
+pre code { font-size: 13px; }
+figure { margin: 12px 0 16px; }
+figure svg { width: 100%; height: auto; display: block; background: var(--soft); border-radius: 12px; }
+figcaption { font-size: 13px; color: var(--mut); margin-top: 6px; text-align: center; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 700px) { .two { grid-template-columns: 1fr; } }
+.tip { background: var(--acc-soft); border-radius: var(--r-in); padding: 8px 14px; margin: 10px 0; }
+.tip > b:first-child { color: var(--acc); }
+.word { margin: 6px 0 8px; }
+details { margin: 10px 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+table.cheat td:first-child { white-space: nowrap; }
+.plan td:first-child { font: 600 12.5px var(--mono); white-space: nowrap; color: var(--acc); }
+.week { font-weight: 700; }
+
+/* svg drawing classes (presentation attributes cannot read CSS variables, classes can) */
+.sv-ink { stroke: var(--ink); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.sv-mut { stroke: var(--mut); fill: none; stroke-width: 1.5; }
+.sv-line { stroke: var(--line); fill: none; stroke-width: 1.5; }
+.sv-acc { stroke: var(--acc); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.sv-dash { stroke: var(--mut); fill: none; stroke-width: 1.5; stroke-dasharray: 5 5; }
+.sv-card { fill: var(--card); stroke: var(--line); stroke-width: 1.5; }
+.sv-head { fill: var(--head); stroke: var(--line); stroke-width: 1.5; }
+.sv-accfill { fill: var(--acc); }
+.sv-accsoft { fill: var(--acc-soft); stroke: var(--acc); stroke-width: 1.5; }
+.sv-bank { fill: var(--bank-soft); stroke: var(--bank); stroke-width: 1.5; }
+.sv-warn { fill: var(--warn-bg); stroke: var(--warn); stroke-width: 1.5; }
+.sv-jpy { fill: var(--jpy); }
+.sv-usd { fill: var(--usd); }
+.sv-red { fill: var(--dn); }
+.sv-ghost1 { fill: none; stroke: var(--dn); stroke-width: 2; opacity: .45; }
+.sv-ghost2 { fill: none; stroke: var(--up); stroke-width: 2; opacity: .45; }
+.sv-t { fill: var(--ink); font: 13px system-ui, sans-serif; }
+.sv-ts { fill: var(--mut); font: 11.5px system-ui, sans-serif; }
+.sv-tb { fill: var(--ink); font: 600 13px system-ui, sans-serif; }
+.sv-ta { fill: var(--acc); font: 600 12px system-ui, sans-serif; }
+.sv-on { fill: var(--on-acc); font: 600 12px system-ui, sans-serif; }
+.sv-big { fill: var(--ink); font: 700 88px Georgia, serif; }
+
+/* print: a clean booklet / PDF */
+@media print {
+  :root { color-scheme: light; }
+  body { background: #fff; color: #000; font-size: 11pt; }
+  .toc, .theme-toggle, .noprint { display: none !important; }
+  .book { display: block; }
+  .wrap { max-width: none; padding: 0; }
+  .card { border: 0; padding: 0; }
+  main > section { break-before: page; }
+  main > section.hero { break-before: auto; }
+  figure, table, pre, .tip, .doubt, details { break-inside: avoid; }
+  details { border: 1px solid #ccc; }
+  details > summary::before { display: none; }
+  a { color: #000; text-decoration: none; }
+  figure svg { background: #f4f4f4; }
+  @page { size: A4; margin: 16mm 14mm; }
+}
+</style></head>
+<body>
+<div class="wrap">
+<div class="book">
+
+<nav class="toc" aria-label="Chapters">
+  <b>Chapters</b>
+  <ol>
+    <li><a href="#c1">Install Krita</a></li>
+    <li><a href="#c2">Tour of the screen</a></li>
+    <li><a href="#c3">New animation file</a></li>
+    <li><a href="#c4">Brushes</a></li>
+    <li><a href="#c5">Layers</a></li>
+    <li><a href="#c6">Animation basics</a></li>
+    <li><a href="#c7">Tweening and camera</a></li>
+    <li><a href="#c8">Recipe: 2 into a swan</a></li>
+    <li><a href="#c9">Recorder (timelapse)</a></li>
+    <li><a href="#c10">Export</a></li>
+    <li><a href="#c11">Effects and sound</a></li>
+    <li><a href="#c12">30-day plan</a></li>
+    <li><a href="#c13">Cheat sheet and fixes</a></li>
+  </ol>
+  <div class="tools noprint">
+    <button type="button" id="openAll">Open all</button>
+    <button type="button" id="closeAll">Close all</button>
+    <button type="button" onclick="window.print()">Print / PDF</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="card hero">
+  <div class="kicker">Krita Studio Kit · Booklet 1</div>
+  <h1>Draw it, move it, post it.<br>Krita for 2D animation and short videos</h1>
+  <p class="sub">For people who make hand-drawn posts, drawing reveals, poem and story animations, and Reels or Shorts. No experience needed.</p>
+  <div class="tiles">
+    <div class="tile"><b>Free</b><span>Krita costs nothing, forever</span></div>
+    <div class="tile"><b>1080×1920</b><span>the size of a Reel or Short</span></div>
+    <div class="tile"><b>12 fps</b><span>enough for hand-drawn motion</span></div>
+    <div class="tile"><b>30 days</b><span>from first line to a 10-second story</span></div>
+  </div>
+  <figure>
+    <svg viewBox="0 0 760 120" role="img" aria-label="The journey: install, draw, animate, record, export, add sound, post">
+      <g>
+        <rect class="sv-card" x="10" y="35" width="88" height="48" rx="12"/><text class="sv-tb" x="54" y="64" text-anchor="middle">Install</text>
+        <rect class="sv-card" x="118" y="35" width="88" height="48" rx="12"/><text class="sv-tb" x="162" y="64" text-anchor="middle">Draw</text>
+        <rect class="sv-accsoft" x="226" y="35" width="88" height="48" rx="12"/><text class="sv-tb" x="270" y="64" text-anchor="middle">Animate</text>
+        <rect class="sv-card" x="334" y="35" width="88" height="48" rx="12"/><text class="sv-tb" x="378" y="64" text-anchor="middle">Record</text>
+        <rect class="sv-card" x="442" y="35" width="88" height="48" rx="12"/><text class="sv-tb" x="486" y="64" text-anchor="middle">Export</text>
+        <rect class="sv-card" x="550" y="35" width="96" height="48" rx="12"/><text class="sv-tb" x="598" y="64" text-anchor="middle">Add sound</text>
+        <rect class="sv-bank" x="666" y="35" width="84" height="48" rx="12"/><text class="sv-tb" x="708" y="64" text-anchor="middle">Post</text>
+      </g>
+      <g class="sv-dash"><path d="M98 59h20M206 59h20M314 59h20M422 59h20M530 59h20M646 59h20"/></g>
+      <text class="sv-ts" x="54" y="102" text-anchor="middle">ch. 1–3</text><text class="sv-ts" x="162" y="102" text-anchor="middle">ch. 4–5</text>
+      <text class="sv-ts" x="270" y="102" text-anchor="middle">ch. 6–8</text><text class="sv-ts" x="378" y="102" text-anchor="middle">ch. 9</text>
+      <text class="sv-ts" x="486" y="102" text-anchor="middle">ch. 10</text><text class="sv-ts" x="598" y="102" text-anchor="middle">ch. 11</text>
+      <text class="sv-ts" x="708" y="102" text-anchor="middle">ch. 12</text>
+    </svg>
+    <figcaption>The whole journey. Each box is a few chapters.</figcaption>
+  </figure>
+  <p class="mut" style="font-size:13.5px">Written for Krita 5.2 and newer. Menu names can move a little between versions. If a menu is not where this booklet says, look in the nearby menus or use the search in <span class="menu">Help</span>.</p>
+</section>
+
+<!-- ================= 1 INSTALL ================= -->
+<section class="card" id="c1">
+  <h2><span class="n">1</span>Install Krita on Linux</h2>
+  <p class="goal">Goal: Krita opens on your computer. Takes about 10 minutes.</p>
+  <div class="word"><b>Flatpak</b>: an app store system for Linux. It keeps each app in its own box.</div>
+  <div class="word"><b>AppImage</b>: one file that is the whole app. You download it and run it. Nothing to install.</div>
+
+  <h3>Way A: Flatpak (easiest updates)</h3>
+  <ol class="steps">
+    <li>Open a terminal (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>T</kbd> on most systems).</li>
+    <li>If Flatpak is new to you, add the Flathub store once:
+      <pre><code>flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo</code></pre></li>
+    <li>Install Krita. The download is about 200–300 MB.
+      <pre><code>flatpak install flathub org.kde.krita</code></pre></li>
+    <li>Open it from your app menu (search "Krita"), or type:
+      <pre><code>flatpak run org.kde.krita</code></pre></li>
+  </ol>
+
+  <h3>Way B: AppImage from krita.org</h3>
+  <ol class="steps">
+    <li>Go to <b>krita.org</b> → Download → Linux, and save the <code>.appimage</code> file (about 200–300 MB).</li>
+    <li>Make it runnable, then start it:
+      <pre><code>chmod +x ~/Downloads/krita-*.appimage
+~/Downloads/krita-*.appimage</code></pre></li>
+    <li>Keep the file in a safe folder (for example <code>~/Apps</code>). That one file <i>is</i> Krita.</li>
+  </ol>
+
+  <div class="tip"><b>Which one?</b> Pick Flatpak if you want updates to come by themselves. Pick the AppImage if you want the newest version from krita.org right away.</div>
+
+  <h3>First-time setup (5 minutes, saves hours)</h3>
+  <ol class="steps">
+    <li><b>Tablet:</b> if you use a pen tablet, test pressure in <span class="menu">Settings › Configure Krita › Tablet settings</span>. Draw on the test area. Lines should get thicker when you press harder.</li>
+    <li><b>Autosave:</b> in <span class="menu">Settings › Configure Krita › General</span>, check the autosave time (every few minutes is good).</li>
+    <li><b>Language and theme:</b> <span class="menu">Settings › Switch Application Language</span> and <span class="menu">Settings › Themes</span>.</li>
+    <li><b>Memory:</b> in <span class="menu">Settings › Configure Krita › Performance</span>, give Krita a fair share of RAM. Animation uses a lot.</li>
+  </ol>
+  <details><summary>Not sure Flatpak is installed?</summary>
+    <p>Type <code>flatpak --version</code>. If you see a number, it is there. If not, on Ubuntu-like systems run <code>sudo apt install flatpak</code>, then log out and in again. Your distribution's docs have the exact steps.</p>
+  </details>
+</section>
+
+<!-- ================= 2 TOUR ================= -->
+<section class="card" id="c2">
+  <h2><span class="n">2</span>A tour of the screen</h2>
+  <p class="goal">Goal: know the five areas you will use every day.</p>
+  <div class="word"><b>Docker</b>: a small panel on the side of the screen (Layers, Brush Presets, Timeline…). You can move, close and re-open them.</div>
+  <div class="word"><b>Workspace</b>: a saved arrangement of dockers for one kind of job.</div>
+  <figure>
+    <svg viewBox="0 0 760 400" role="img" aria-label="Krita screen: menu bar on top, toolbox on the left, canvas in the middle, brush presets and layers on the right, timeline at the bottom">
+      <rect class="sv-card" x="10" y="10" width="740" height="380" rx="14"/>
+      <rect class="sv-head" x="10" y="10" width="740" height="34" rx="14"/>
+      <text class="sv-t" x="26" y="32">File  Edit  View  Image  Layer  Select  Filter  Tools  Settings  Window  Help</text>
+      <text class="sv-ta" x="600" y="32">⑥ workspace switcher</text>
+      <rect class="sv-accsoft" x="22" y="56" width="58" height="240" rx="10"/>
+      <g class="sv-ink" style="stroke-width:1.5"><rect x="36" y="70" width="12" height="12" rx="2"/><rect x="54" y="70" width="12" height="12" rx="2"/><circle cx="42" cy="98" r="6"/><circle cx="60" cy="98" r="6"/><path d="M36 120l12 12M54 132l12-12"/></g>
+      <text class="sv-ta" x="51" y="170" text-anchor="middle">①</text><text class="sv-ts" x="51" y="186" text-anchor="middle">Toolbox</text>
+      <rect class="sv-line" x="96" y="56" width="430" height="240" rx="10" style="fill:var(--bg)"/>
+      <rect class="sv-card" x="250" y="66" width="122" height="216" rx="4"/>
+      <path class="sv-ink" d="M285 210c10-40 50-40 55-10s-40 40-50 60"/><circle class="sv-ink" cx="318" cy="128" r="16"/>
+      <text class="sv-ta" x="311" y="300" text-anchor="middle"></text>
+      <text class="sv-ta" x="140" y="80">② Canvas</text><text class="sv-ts" x="140" y="96">(your drawing)</text>
+      <rect class="sv-bank" x="540" y="56" width="198" height="110" rx="10"/>
+      <text class="sv-tb" x="552" y="76">③ Brush Presets</text>
+      <g><circle class="sv-accfill" cx="566" cy="104" r="12"/><circle class="sv-accfill" cx="600" cy="104" r="8" opacity=".7"/><circle class="sv-accfill" cx="630" cy="104" r="14" opacity=".4"/><circle class="sv-accfill" cx="666" cy="104" r="10" opacity=".85"/><circle class="sv-accfill" cx="700" cy="104" r="6"/></g>
+      <text class="sv-ts" x="552" y="146">search box: "pencil", "ink"…</text>
+      <rect class="sv-bank" x="540" y="176" width="198" height="120" rx="10"/>
+      <text class="sv-tb" x="552" y="196">④ Layers</text>
+      <rect class="sv-card" x="552" y="206" width="174" height="22" rx="5"/><text class="sv-ts" x="562" y="221">Colour</text>
+      <rect class="sv-card" x="552" y="232" width="174" height="22" rx="5"/><text class="sv-ts" x="562" y="247">Lines</text>
+      <rect class="sv-card" x="552" y="258" width="174" height="22" rx="5"/><text class="sv-ts" x="562" y="273">Background</text>
+      <rect class="sv-warn" x="22" y="308" width="716" height="70" rx="10"/>
+      <text class="sv-tb" x="34" y="328">⑤ Animation Timeline (in the Animation workspace)</text>
+      <g class="sv-line">
+        <path d="M34 344h690M34 362h690"/>
+      </g>
+      <g><rect class="sv-accfill" x="200" y="347" width="10" height="12" rx="2"/><rect class="sv-accfill" x="260" y="347" width="10" height="12" rx="2"/><rect class="sv-accfill" x="320" y="347" width="10" height="12" rx="2"/></g>
+      <text class="sv-ts" x="40" y="357">▶ ⏸  12 fps</text>
+    </svg>
+    <figcaption>① tools, ② canvas, ③ brushes, ④ layers, ⑤ timeline, ⑥ workspaces.</figcaption>
+  </figure>
+  <h3>Switch to the Animation workspace</h3>
+  <ol class="steps">
+    <li>Open <span class="menu">Window › Workspace › Animation</span>.<br><span class="mut">Or click the workspace button at the top right of the window and pick <b>Animation</b>.</span></li>
+    <li>The <b>Timeline</b> appears at the bottom, with <b>Onion Skins</b> and other animation dockers nearby.</li>
+    <li>Lost a docker? Bring it back from <span class="menu">Settings › Dockers</span>.</li>
+  </ol>
+  <div class="tip"><b>Tip:</b> press <kbd>Tab</kbd> to hide all dockers and see only the canvas. Press it again to bring them back.</div>
+</section>
+
+<!-- ================= 3 NEW DOC ================= -->
+<section class="card" id="c3">
+  <h2><span class="n">3</span>A new document for animation</h2>
+  <p class="goal">Goal: the right size, speed and length before you draw anything.</p>
+  <div class="two">
+    <figure>
+      <svg viewBox="0 0 360 230" role="img" aria-label="Canvas sizes: vertical 1080 by 1920 for Reels and Shorts; horizontal 1920 by 1080 for YouTube">
+        <rect class="sv-accsoft" x="40" y="14" width="108" height="192" rx="10"/>
+        <text class="sv-tb" x="94" y="106" text-anchor="middle">1080</text><text class="sv-tb" x="94" y="124" text-anchor="middle">×1920</text>
+        <text class="sv-ts" x="94" y="224" text-anchor="middle">Reels · Shorts · TikTok</text>
+        <rect class="sv-bank" x="176" y="58" width="170" height="96" rx="10"/>
+        <text class="sv-tb" x="261" y="110" text-anchor="middle">1920×1080</text>
+        <text class="sv-ts" x="261" y="178" text-anchor="middle">YouTube (wide)</text>
+      </svg>
+      <figcaption>Pick the shape of the screen people will watch on.</figcaption>
+    </figure>
+    <figure>
+      <svg viewBox="0 0 360 230" role="img" aria-label="12 frames per second versus 24 frames per second over one second">
+        <text class="sv-tb" x="16" y="40">12 fps</text>
+        <g class="sv-accfill">
+          <rect x="80" y="26" width="18" height="22" rx="3"/><rect x="102" y="26" width="18" height="22" rx="3"/><rect x="124" y="26" width="18" height="22" rx="3"/><rect x="146" y="26" width="18" height="22" rx="3"/><rect x="168" y="26" width="18" height="22" rx="3"/><rect x="190" y="26" width="18" height="22" rx="3"/><rect x="212" y="26" width="18" height="22" rx="3"/><rect x="234" y="26" width="18" height="22" rx="3"/><rect x="256" y="26" width="18" height="22" rx="3"/><rect x="278" y="26" width="18" height="22" rx="3"/><rect x="300" y="26" width="18" height="22" rx="3"/><rect x="322" y="26" width="18" height="22" rx="3"/>
+        </g>
+        <text class="sv-ts" x="80" y="66">12 drawings = 1 second. Hand-drawn feel. Half the work.</text>
+        <text class="sv-tb" x="16" y="118">24 fps</text>
+        <g class="sv-usd">
+          <rect x="80" y="104" width="8" height="22" rx="2"/><rect x="91" y="104" width="8" height="22" rx="2"/><rect x="102" y="104" width="8" height="22" rx="2"/><rect x="113" y="104" width="8" height="22" rx="2"/><rect x="124" y="104" width="8" height="22" rx="2"/><rect x="135" y="104" width="8" height="22" rx="2"/><rect x="146" y="104" width="8" height="22" rx="2"/><rect x="157" y="104" width="8" height="22" rx="2"/><rect x="168" y="104" width="8" height="22" rx="2"/><rect x="179" y="104" width="8" height="22" rx="2"/><rect x="190" y="104" width="8" height="22" rx="2"/><rect x="201" y="104" width="8" height="22" rx="2"/><rect x="212" y="104" width="8" height="22" rx="2"/><rect x="223" y="104" width="8" height="22" rx="2"/><rect x="234" y="104" width="8" height="22" rx="2"/><rect x="245" y="104" width="8" height="22" rx="2"/><rect x="256" y="104" width="8" height="22" rx="2"/><rect x="267" y="104" width="8" height="22" rx="2"/><rect x="278" y="104" width="8" height="22" rx="2"/><rect x="289" y="104" width="8" height="22" rx="2"/><rect x="300" y="104" width="8" height="22" rx="2"/><rect x="311" y="104" width="8" height="22" rx="2"/><rect x="322" y="104" width="8" height="22" rx="2"/><rect x="333" y="104" width="8" height="22" rx="2"/>
+        </g>
+        <text class="sv-ts" x="80" y="144">24 slots = 1 second. Smooth, like film.</text>
+        <path class="sv-dash" d="M80 172h262"/><text class="sv-ts" x="211" y="192" text-anchor="middle">1 second</text>
+        <text class="sv-ta" x="16" y="218">Start at 12 fps, or 24 fps drawn "on 2s" (chapter 6).</text>
+      </svg>
+      <figcaption>Frame rate = pictures per second.</figcaption>
+    </figure>
+  </div>
+  <div class="word"><b>Frame</b>: one picture in the animation.</div>
+  <div class="word"><b>fps</b> (frames per second): how many pictures play each second.</div>
+  <div class="word"><b>DPI</b>: dots per inch. It only matters for paper printing, not for video.</div>
+  <ol class="steps">
+    <li><span class="menu">File › New</span> (<kbd>Ctrl</kbd>+<kbd>N</kbd>) → <b>Custom Document</b>.</li>
+    <li>Width <b>1080</b>, Height <b>1920</b> (Reels). Or 1920 × 1080 for YouTube.</li>
+    <li>Resolution: <b>72</b> for video. Use <b>300</b> only for a picture you will print, like a book page.</li>
+    <li>On the <b>Content</b> tab, pick a white or paper-coloured background. Click <b>Create</b>.</li>
+    <li>Go to the Animation workspace (chapter 2). At the top of the <b>Timeline</b>, set the frame rate (<b>FPS</b>) to 12 or 24.</li>
+    <li>Set the clip length with the <b>Start</b> and <b>End</b> frame numbers. At 12 fps, 10 seconds = frames 0 to 119.</li>
+    <li>Save now as a <code>.kra</code> file (<kbd>Ctrl</kbd>+<kbd>S</kbd>). It keeps all your layers and frames.</li>
+  </ol>
+  <div class="math">Length in frames = seconds × fps &nbsp;·&nbsp; 10 s × 12 fps = <b>120 frames</b> &nbsp;·&nbsp; 15 s × 24 fps = <b>360 frames</b></div>
+  <details><summary>Older Krita? Where the frame rate lives</summary>
+    <p>In Krita 5.2 the playback buttons, FPS and Start/End sit in the header of the Timeline docker. In older versions they were in a separate <b>Animation</b> docker (<span class="menu">Settings › Dockers › Animation</span>). Same settings, different place.</p>
+  </details>
+  <details><summary>Why not draw at 4K?</summary>
+    <p>Every frame is a full picture in memory. A 4K canvas with 120 frames and 5 layers can fill your RAM and make playback stutter. 1080 × 1920 is what Instagram and YouTube Shorts show anyway.</p>
+  </details>
+</section>
+
+<!-- ================= 4 BRUSHES ================= -->
+<section class="card" id="c4">
+  <h2><span class="n">4</span>Brushes for children's-book art</h2>
+  <p class="goal">Goal: four brushes you love, and smooth wobble-free lines.</p>
+  <div class="word"><b>Brush preset</b>: a saved brush, with its shape, size and texture ready to use.</div>
+  <div class="word"><b>Stabilizer</b>: a helper that smooths your shaky hand into a calm line.</div>
+  <figure>
+    <svg viewBox="0 0 760 170" role="img" aria-label="Four strokes: pencil, ink, watercolour, soft airbrush">
+      <path class="sv-mut" d="M30 70c40-30 90-30 140 0" style="stroke-width:2;stroke-dasharray:1 2"/>
+      <path class="sv-mut" d="M30 74c40-30 90-30 140 0" style="stroke-width:1.2"/>
+      <text class="sv-tb" x="100" y="120" text-anchor="middle">Pencil</text><text class="sv-ts" x="100" y="138" text-anchor="middle">sketch, soft lines</text>
+      <path class="sv-ink" d="M215 74c40-34 90-34 140 0" style="stroke-width:4"/>
+      <text class="sv-tb" x="285" y="120" text-anchor="middle">Ink</text><text class="sv-ts" x="285" y="138" text-anchor="middle">clean outlines</text>
+      <ellipse class="sv-accfill" cx="470" cy="62" rx="60" ry="22" opacity=".25"/><ellipse class="sv-accfill" cx="485" cy="66" rx="40" ry="16" opacity=".25"/><ellipse class="sv-accfill" cx="455" cy="58" rx="22" ry="10" opacity=".2"/>
+      <text class="sv-tb" x="470" y="120" text-anchor="middle">Watercolour-ish</text><text class="sv-ts" x="470" y="138" text-anchor="middle">wash fills</text>
+      <defs><radialGradient id="air"><stop offset="0" stop-color="#e58aa0" stop-opacity=".9"/><stop offset="1" stop-color="#e58aa0" stop-opacity="0"/></radialGradient></defs>
+      <circle cx="655" cy="64" r="44" fill="url(#air)"/>
+      <text class="sv-tb" x="655" y="120" text-anchor="middle">Soft airbrush</text><text class="sv-ts" x="655" y="138" text-anchor="middle">cheeks, glow, shadows</text>
+    </svg>
+    <figcaption>A starter set. Four brushes are enough for a whole book.</figcaption>
+  </figure>
+  <h3>Find the built-in presets</h3>
+  <ol class="steps">
+    <li>Press <kbd>B</kbd> for the Freehand Brush tool.</li>
+    <li>In the <b>Brush Presets</b> docker, type in the search box: <code>pencil</code>, <code>ink</code>, <code>water</code>, <code>airbrush</code>.</li>
+    <li>Try each one. Good starters in the default set are a pencil (for example <i>Pencil-2</i>), a fineliner or G-pen ink, a "Water C" style wet brush, and a soft airbrush. Names vary a little by version.</li>
+    <li>Right-click the canvas: a ring of favourite brushes pops up. Drag your four favourites into a tag so they show there.</li>
+  </ol>
+  <h3>Turn on the stabilizer</h3>
+  <ol class="steps">
+    <li>With the brush tool (<kbd>B</kbd>), open the <b>Tool Options</b> docker (<span class="menu">Settings › Dockers › Tool Options</span> if hidden).</li>
+    <li>Set <b>Brush Smoothing</b> to <b>Stabilizer</b>.</li>
+    <li>Raise <b>Distance</b> for smoother lines (try 30–50). Higher = smoother but the line trails behind your pen.</li>
+    <li>Turn it back to <b>None</b> for quick sketching.</li>
+  </ol>
+  <h3>Keys you will press 1000 times</h3>
+  <div class="chips"><span class="chip acc"><kbd>B</kbd> brush</span><span class="chip acc"><kbd>E</kbd> eraser on/off</span><span class="chip acc"><kbd>[</kbd> smaller</span><span class="chip acc"><kbd>]</kbd> bigger</span><span class="chip acc"><kbd>Ctrl</kbd>+<kbd>Z</kbd> undo</span><span class="chip acc"><kbd>Space</kbd>+drag pan</span><span class="chip acc"><kbd>Ctrl</kbd>+<kbd>Space</kbd>+drag zoom</span></div>
+  <div class="tip"><b>Children's-book look:</b> pencil lines + flat watercolour fills + soft airbrush on the cheeks. Use a warm paper colour, not pure white, for the background.</div>
+  <details><summary>Note: <kbd>E</kbd> is a switch, not a tool</summary>
+    <p>Pressing <kbd>E</kbd> turns the <i>current brush</i> into an eraser of the same shape. Press it again to paint. If your brush "won't paint", check you did not leave eraser mode on.</p>
+  </details>
+</section>
+
+<!-- ================= 5 LAYERS ================= -->
+<section class="card" id="c5">
+  <h2><span class="n">5</span>Layers</h2>
+  <p class="goal">Goal: change one thing without breaking the rest.</p>
+  <div class="word"><b>Layer</b>: a clear sheet. You stack sheets; the top ones cover the bottom ones.</div>
+  <div class="two">
+    <figure>
+      <svg viewBox="0 0 360 260" role="img" aria-label="Layer stack: a group called Character containing Shading with inherit alpha, Lines and Colour, above a Background layer">
+        <g transform="translate(0,0)">
+          <path class="sv-card" d="M70 40l200 0 50 26-200 0z"/><text class="sv-t" x="190" y="58" text-anchor="middle">Shading (α inherit)</text>
+          <path class="sv-card" d="M70 84l200 0 50 26-200 0z"/><text class="sv-t" x="190" y="102" text-anchor="middle">Lines</text>
+          <path class="sv-accsoft" d="M70 128l200 0 50 26-200 0z"/><text class="sv-t" x="190" y="146" text-anchor="middle">Colour</text>
+          <path class="sv-warn" d="M70 186l200 0 50 26-200 0z"/><text class="sv-t" x="190" y="204" text-anchor="middle">Background</text>
+          <path class="sv-dash" d="M56 30v132h280"/><text class="sv-ta" x="30" y="24">Group: Character</text>
+          <text class="sv-ts" x="180" y="244" text-anchor="middle">top of the list = front of the picture</text>
+        </g>
+      </svg>
+      <figcaption>One group per character. The background sits alone.</figcaption>
+    </figure>
+    <figure>
+      <svg viewBox="0 0 360 260" role="img" aria-label="Inherit alpha: shading paint only shows inside the colour shape below">
+        <circle class="sv-accsoft" cx="100" cy="110" r="56"/>
+        <text class="sv-ts" x="100" y="190" text-anchor="middle">Colour shape</text>
+        <text class="sv-tb" x="180" y="116" text-anchor="middle">+</text>
+        <rect x="200" y="54" width="70" height="112" fill="#7a6ad8" opacity=".55" rx="6"/>
+        <text class="sv-ts" x="235" y="190" text-anchor="middle">Messy shading</text>
+        <text class="sv-tb" x="290" y="116">=</text>
+        <defs><clipPath id="clipc"><circle cx="100" cy="110" r="56"/></clipPath></defs>
+        <g transform="translate(0,0)">
+          <g transform="translate(222,120) scale(.55) translate(-100,-110)">
+            <circle class="sv-accsoft" cx="100" cy="110" r="56"/>
+            <rect x="110" y="40" width="70" height="140" fill="#7a6ad8" opacity=".55" clip-path="url(#clipc)"/>
+          </g>
+        </g>
+        <text class="sv-ta" x="180" y="236" text-anchor="middle">Shading stays inside the lines</text>
+      </svg>
+      <figcaption>Inherit Alpha: paint freely, it only shows on the shape below.</figcaption>
+    </figure>
+  </div>
+  <h3>Set up the stack</h3>
+  <ol class="steps">
+    <li>Add a paint layer: <kbd>Insert</kbd>, or the <b>+</b> button in the Layers docker. Double-click a name to rename it.</li>
+    <li>Make three layers: <b>Background</b>, <b>Lines</b>, <b>Colour</b>. Drag <b>Colour</b> under <b>Lines</b>, so the lines stay crisp on top.</li>
+    <li>Select Lines and Colour, press <kbd>Ctrl</kbd>+<kbd>G</kbd> to put them in a <b>group</b>. Name it after the character.</li>
+    <li>The eye icon hides a layer. The lock icon stops changes.</li>
+  </ol>
+  <h3>The Inherit Alpha colouring trick</h3>
+  <div class="word"><b>Alpha</b>: how see-through a pixel is. "Inherit alpha" = borrow the see-through shape of the layers below.</div>
+  <ol class="steps">
+    <li>Inside the character group, add a new layer above <b>Colour</b>. Call it <b>Shading</b>.</li>
+    <li>Click the <b>α</b> (Inherit Alpha) icon on the Shading layer in the Layers docker.</li>
+    <li>Paint shadows or a soft airbrush blush. It only appears where the group's layers below have paint.</li>
+  </ol>
+  <div class="tip"><b>Clipping, Krita style:</b> Krita has no separate "clipping mask". Inherit Alpha inside a group <i>is</i> clipping. <span class="menu">Layer › Group › Quick Clipping Group</span> (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd>) builds the group and the inherit-alpha layer for you.</div>
+  <details><summary>Inherit Alpha vs Lock Alpha</summary>
+    <p><b>Lock Alpha</b> (the checkerboard lock) lets you repaint only the pixels already on <i>that same layer</i>. Great for recolouring a line. <b>Inherit Alpha</b> borrows the shape of <i>everything below it in the group</i>. That is why the group matters: outside a group, the background would count too, and the trick stops working.</p>
+  </details>
+</section>
+
+<!-- ================= 6 ANIMATION BASICS ================= -->
+<section class="card" id="c6">
+  <h2><span class="n">6</span>Animation basics</h2>
+  <p class="goal">Goal: a bouncing ball that feels alive. Your first real animation.</p>
+  <div class="word"><b>Keyframe</b> (Krita often says just "frame"): a cell in the timeline that holds a drawing.</div>
+  <div class="word"><b>Hold</b>: a drawing that stays on screen for more than one frame.</div>
+  <div class="word"><b>Onion skin</b>: faint ghosts of the frames before and after, so you can see where to draw next.</div>
+  <figure>
+    <svg viewBox="0 0 760 210" role="img" aria-label="Timeline: rows are layers, columns are frames, filled cells are drawings, lines after them are holds, red playhead">
+      <rect class="sv-card" x="10" y="10" width="740" height="190" rx="12"/>
+      <text class="sv-ts" x="24" y="34">frame →</text>
+      <g class="sv-ts"><text x="150" y="34">0</text><text x="210" y="34">2</text><text x="270" y="34">4</text><text x="330" y="34">6</text><text x="390" y="34">8</text><text x="450" y="34">10</text><text x="510" y="34">12</text><text x="570" y="34">14</text><text x="630" y="34">16</text><text x="690" y="34">18</text></g>
+      <rect class="sv-head" x="20" y="46" width="110" height="34" rx="6"/><text class="sv-t" x="30" y="68">Ball</text>
+      <rect class="sv-head" x="20" y="90" width="110" height="34" rx="6"/><text class="sv-t" x="30" y="112">Shadow</text>
+      <rect class="sv-head" x="20" y="134" width="110" height="34" rx="6"/><text class="sv-t" x="30" y="156">Background</text>
+      <g class="sv-line"><path d="M140 80h600M140 124h600M140 168h600"/></g>
+      <g>
+        <rect class="sv-accfill" x="146" y="52" width="22" height="22" rx="4"/><path class="sv-acc" d="M168 63h38"/>
+        <rect class="sv-accfill" x="206" y="52" width="22" height="22" rx="4"/><path class="sv-acc" d="M228 63h38"/>
+        <rect class="sv-accfill" x="266" y="52" width="22" height="22" rx="4"/><path class="sv-acc" d="M288 63h38"/>
+        <rect class="sv-accfill" x="326" y="52" width="22" height="22" rx="4"/><path class="sv-acc" d="M348 63h38"/>
+        <rect class="sv-accfill" x="386" y="52" width="22" height="22" rx="4"/><path class="sv-acc" d="M408 63h38"/>
+        <rect class="sv-accfill" x="446" y="52" width="22" height="22" rx="4"/><path class="sv-acc" d="M468 63h38"/>
+        <rect class="sv-accfill" x="506" y="52" width="22" height="22" rx="4"/>
+      </g>
+      <g><rect class="sv-usd" x="146" y="96" width="22" height="22" rx="4"/><path class="sv-mut" d="M168 107h218"/><rect class="sv-usd" x="386" y="96" width="22" height="22" rx="4"/><path class="sv-mut" d="M408 107h110"/></g>
+      <g><rect class="sv-jpy" x="146" y="140" width="22" height="22" rx="4"/><path class="sv-mut" d="M168 151h360"/></g>
+      <path d="M418 40v152" stroke="#e0473b" stroke-width="2"/><path d="M412 40h12l-6 8z" fill="#e0473b"/>
+      <text class="sv-ts" x="540" y="66">■ drawing (keyframe)</text><text class="sv-ts" x="540" y="110">— hold (same drawing stays)</text><text class="sv-ts" x="540" y="154">one drawing held all along</text>
+      <text class="sv-ts" x="424" y="190" style="fill:#e0473b">playhead = frame you see</text>
+    </svg>
+    <figcaption>Timeline: one row per layer, one column per frame.</figcaption>
+  </figure>
+  <h3>Make frames</h3>
+  <ol class="steps">
+    <li>In the Animation workspace, select your layer. Click a cell in the <b>Timeline</b>.</li>
+    <li>Right-click the cell → <b>Create Blank Frame</b> for a new empty drawing, or <b>Create Duplicate Frame</b> to copy the drawing you see and change it a little.</li>
+    <li>Move between frames with <kbd>.</kbd> (next) and <kbd>,</kbd> (previous). Jump between drawings with <kbd>Alt</kbd>+<kbd>.</kbd> and <kbd>Alt</kbd>+<kbd>,</kbd>.</li>
+    <li>Press the <b>Play</b> button in the timeline header to watch. Press it again to stop.</li>
+    <li>Optional: turn on <b>auto-frame mode</b> (the button with a frame/key icon in the timeline header). Then drawing on an empty cell makes a new frame by itself.</li>
+  </ol>
+  <h3>Holds: "on 1s" and "on 2s"</h3>
+  <figure>
+    <svg viewBox="0 0 760 140" role="img" aria-label="On ones: a new drawing every frame. On twos: each drawing held for two frames, half the drawings">
+      <text class="sv-tb" x="16" y="42">On 1s</text>
+      <g class="sv-accfill"><rect x="100" y="24" width="40" height="30" rx="5"/><rect x="146" y="24" width="40" height="30" rx="5"/><rect x="192" y="24" width="40" height="30" rx="5"/><rect x="238" y="24" width="40" height="30" rx="5"/><rect x="284" y="24" width="40" height="30" rx="5"/><rect x="330" y="24" width="40" height="30" rx="5"/><rect x="376" y="24" width="40" height="30" rx="5"/><rect x="422" y="24" width="40" height="30" rx="5"/></g>
+      <g class="sv-on"><text x="120" y="44" text-anchor="middle">1</text><text x="166" y="44" text-anchor="middle">2</text><text x="212" y="44" text-anchor="middle">3</text><text x="258" y="44" text-anchor="middle">4</text><text x="304" y="44" text-anchor="middle">5</text><text x="350" y="44" text-anchor="middle">6</text><text x="396" y="44" text-anchor="middle">7</text><text x="442" y="44" text-anchor="middle">8</text></g>
+      <text class="sv-ts" x="480" y="44">8 drawings — very smooth, lots of work</text>
+      <text class="sv-tb" x="16" y="100">On 2s</text>
+      <g><rect class="sv-accfill" x="100" y="82" width="86" height="30" rx="5"/><rect class="sv-accfill" x="192" y="82" width="86" height="30" rx="5"/><rect class="sv-accfill" x="284" y="82" width="86" height="30" rx="5"/><rect class="sv-accfill" x="376" y="82" width="86" height="30" rx="5"/></g>
+      <g class="sv-on"><text x="143" y="102" text-anchor="middle">1 (held)</text><text x="235" y="102" text-anchor="middle">2 (held)</text><text x="327" y="102" text-anchor="middle">3 (held)</text><text x="419" y="102" text-anchor="middle">4 (held)</text></g>
+      <text class="sv-ts" x="480" y="102">4 drawings — classic hand-drawn look</text>
+    </svg>
+    <figcaption>Same 8 frames of time. "On 2s" = half the drawing.</figcaption>
+  </figure>
+  <ol class="steps">
+    <li>To hold a drawing longer, drag the keyframe to the right, leaving empty cells behind it. Empty cells after a drawing keep showing it.</li>
+    <li>Or right-click a frame → the <b>hold frames</b> options (insert or remove holds) to push the next drawings along.</li>
+    <li>At 24 fps, put a new drawing every 2nd frame. That is "animating on 2s".</li>
+  </ol>
+  <h3>Onion skin</h3>
+  <figure>
+    <svg viewBox="0 0 760 170" role="img" aria-label="Onion skin: previous frames shown faint red, next frames faint green, current frame solid">
+      <circle class="sv-ghost1" cx="200" cy="60" r="26" style="opacity:.25"/>
+      <circle class="sv-ghost1" cx="280" cy="78" r="26"/>
+      <circle class="sv-ink" cx="370" cy="98" r="26" style="stroke-width:3"/>
+      <circle class="sv-ghost2" cx="460" cy="78" r="26"/>
+      <circle class="sv-ghost2" cx="540" cy="60" r="26" style="opacity:.25"/>
+      <text class="sv-ts" x="240" y="150" text-anchor="middle">before (red tint)</text>
+      <text class="sv-tb" x="370" y="150" text-anchor="middle">now</text>
+      <text class="sv-ts" x="500" y="150" text-anchor="middle">after (green tint)</text>
+    </svg>
+    <figcaption>Ghosts fade the further away they are.</figcaption>
+  </figure>
+  <ol class="steps">
+    <li>Turn onion skin on for a layer with the onion icon in the Layers docker (or the layer's row in the Timeline).</li>
+    <li>Open the <b>Onion Skins</b> docker (<span class="menu">Settings › Dockers › Onion Skins</span>) to choose how many frames before and after, and how faint.</li>
+  </ol>
+
+  <h3>The 4 principles that matter first</h3>
+  <figure>
+    <svg viewBox="0 0 760 300" role="img" aria-label="Bouncing ball arc: balls close together at the top (ease), far apart near the ground (fast), squashed on contact, stretched while falling">
+      <path class="sv-line" d="M20 262h720" style="stroke-width:3"/>
+      <path class="sv-dash" d="M60 40 Q120 40 170 250 Q300 -60 430 250 Q560 60 690 250"/>
+      <!-- first fall: far apart -->
+      <circle class="sv-accsoft" cx="60" cy="40" r="18"/>
+      <circle class="sv-accsoft" cx="84" cy="46" r="18"/>
+      <circle class="sv-accsoft" cx="110" cy="70" r="18"/>
+      <ellipse class="sv-accsoft" cx="140" cy="132" rx="15" ry="22"/>
+      <ellipse class="sv-accsoft" cx="162" cy="210" rx="14" ry="25"/>
+      <ellipse class="sv-accfill" cx="172" cy="252" rx="26" ry="10"/>
+      <!-- rise to top: close together -->
+      <ellipse class="sv-accsoft" cx="210" cy="150" rx="15" ry="22"/>
+      <circle class="sv-accsoft" cx="250" cy="74" r="18"/>
+      <circle class="sv-accsoft" cx="285" cy="44" r="18"/>
+      <circle class="sv-accsoft" cx="315" cy="38" r="18"/>
+      <circle class="sv-accsoft" cx="345" cy="46" r="18"/>
+      <circle class="sv-accsoft" cx="380" cy="80" r="18"/>
+      <ellipse class="sv-accsoft" cx="415" cy="170" rx="14" ry="25"/>
+      <ellipse class="sv-accfill" cx="430" cy="252" rx="24" ry="10"/>
+      <circle class="sv-accsoft" cx="490" cy="130" r="18"/><circle class="sv-accsoft" cx="560" cy="102" r="18"/><circle class="sv-accsoft" cx="630" cy="130" r="18"/>
+      <text class="sv-ta" x="300" y="20" text-anchor="middle">close together = slow (ease)</text>
+      <text class="sv-ta" x="100" y="200">far apart = fast</text>
+      <text class="sv-ta" x="172" y="286" text-anchor="middle">squash</text>
+      <text class="sv-ta" x="460" y="206">stretch</text>
+      <text class="sv-ts" x="690" y="286" text-anchor="middle">each bounce lower</text>
+    </svg>
+    <figcaption>Each circle is one drawing. The gaps between them are the speed.</figcaption>
+  </figure>
+  <div class="grid">
+    <div class="tile"><b style="font-size:17px">Timing & spacing</b><span>How many frames (timing) and how far apart the drawings are (spacing). Far apart = fast.</span></div>
+    <div class="tile"><b style="font-size:17px">Squash & stretch</b><span>Flatten on impact, stretch when fast. Keep the amount of "stuff" the same.</span></div>
+    <div class="tile"><b style="font-size:17px">Anticipation</b><span>A small move the other way before the big move. Crouch before a jump.</span></div>
+    <div class="tile"><b style="font-size:17px">Ease in / ease out</b><span>Start slow, go fast, end slow. Put more drawings near the start and end.</span></div>
+  </div>
+  <h3>Exercise: the bouncing ball (12 fps, 1 second)</h3>
+  <ol class="steps">
+    <li>New 1920 × 1080 file, 12 fps, frames 0–11. Draw a floor line on the Background layer.</li>
+    <li>Add a layer "Ball". On frame 0 draw the ball at the top left. Turn on onion skin.</li>
+    <li>On frame 6 draw the ball touching the floor, <b>squashed</b> flat.</li>
+    <li>On frame 11 draw it back up near the top, a bit to the right and a bit lower.</li>
+    <li>Fill in between: frames 1–2 close together (slow at the top), frames 4–5 far apart and <b>stretched</b> (fast near the floor).</li>
+    <li>Press Play. Too floaty? Remove a frame near the top. Too stiff? Add one.</li>
+  </ol>
+  <details><summary>What about the other 8 principles?</summary>
+    <p>The full list (from Disney's animators) also has staging, straight-ahead vs pose-to-pose, follow-through, arcs, secondary action, exaggeration, solid drawing and appeal. Learn them after your first ten animations. You are already using <i>arcs</i> in the ball.</p>
+  </details>
+</section>
+
+<!-- ================= 7 TWEENING ================= -->
+<section class="card" id="c7">
+  <h2><span class="n">7</span>Tweening and a simple camera pan</h2>
+  <p class="goal">Goal: move, grow and fade a drawing without redrawing it.</p>
+  <div class="word"><b>Tweening</b>: you set a start and an end; the computer fills the frames "in between".</div>
+  <div class="word"><b>Transform mask</b>: a layer helper that moves, scales or rotates its layer without changing the pixels.</div>
+  <figure>
+    <svg viewBox="0 0 760 210" role="img" aria-label="Two keyframes, start small and faint on the left, end big and solid on the right; Krita fills the frames in between">
+      <path class="sv-line" d="M40 170h680" style="stroke-width:2"/>
+      <path class="sv-acc" d="M90 170v-10M650 170v-10"/>
+      <rect class="sv-accfill" x="80" y="174" width="20" height="18" rx="4"/><rect class="sv-accfill" x="640" y="174" width="20" height="18" rx="4"/>
+      <text class="sv-ts" x="90" y="206" text-anchor="middle">key: frame 0</text><text class="sv-ts" x="650" y="206" text-anchor="middle">key: frame 24</text>
+      <g fill="none" stroke-width="2.5" class="sv-acc">
+        <path d="M80 110c6-14 22-14 22 0s-16 14-22 0z" style="opacity:.2"/>
+      </g>
+      <g class="sv-mut" style="stroke-dasharray:3 4"><circle cx="210" cy="104" r="16" style="opacity:.4"/><circle cx="340" cy="96" r="24" style="opacity:.55"/><circle cx="470" cy="88" r="32" style="opacity:.7"/></g>
+      <circle class="sv-accsoft" cx="90" cy="110" r="10" style="opacity:.3"/>
+      <circle class="sv-accsoft" cx="650" cy="80" r="44"/>
+      <text class="sv-tb" x="90" y="150" text-anchor="middle">small · 20%</text>
+      <text class="sv-tb" x="650" y="150" text-anchor="middle">big · 100%</text>
+      <text class="sv-ta" x="340" y="30" text-anchor="middle">Krita fills these in for you</text>
+      <path class="sv-dash" d="M210 40v40M340 40v32M470 40v24"/>
+    </svg>
+    <figcaption>Two keys. Every frame between them is made for you.</figcaption>
+  </figure>
+  <h3>Move or scale with a transform mask (Krita 5.2+)</h3>
+  <ol class="steps">
+    <li>Draw your object (say, a moon) on its own layer. Draw it once only, on one frame.</li>
+    <li>Right-click the layer → <span class="menu">Add › Transform Mask</span>.</li>
+    <li>Select the mask. Go to frame 0. Press <kbd>Ctrl</kbd>+<kbd>T</kbd> (Transform tool) and place the moon where it starts. Press <kbd>Enter</kbd>.</li>
+    <li>With auto-frame mode on, Krita makes a transform keyframe. If not, add one from the mask's row in the Timeline (right-click a cell).</li>
+    <li>Go to frame 24. Transform again: move, scale or rotate. <kbd>Enter</kbd>. A second key appears.</li>
+    <li>Play. The moon glides between the two keys.</li>
+  </ol>
+  <h3>Fade in or out (opacity keys)</h3>
+  <ol class="steps">
+    <li>Select the layer. Go to the first frame of the fade.</li>
+    <li>In the Timeline, add an <b>opacity keyframe</b> for the layer (right-click its row and look for the opacity key option; Krita 5 shows it as a channel under the layer). Set the layer opacity to 0% in the Layers docker.</li>
+    <li>Go to the last frame of the fade. Set opacity to 100%. A second opacity key appears.</li>
+  </ol>
+  <h3>Make it feel natural: ease</h3>
+  <ol class="steps">
+    <li>Open <span class="menu">Settings › Dockers › Animation Curves</span>.</li>
+    <li>Select the keys and pick <b>smooth / bezier</b> interpolation for a gentle start and stop, or <b>linear</b> for a robot-even move.</li>
+  </ol>
+  <h3>A simple camera pan</h3>
+  <figure>
+    <svg viewBox="0 0 760 200" role="img" aria-label="A wide background strip slides left behind a fixed vertical frame, creating a camera pan">
+      <rect class="sv-warn" x="20" y="40" width="720" height="120" rx="10"/>
+      <g class="sv-ink" style="stroke-width:1.5"><path d="M40 140l60-60 50 50 40-40 70 50"/><circle cx="330" cy="80" r="18"/><path d="M420 150c20-40 60-40 80 0M560 140l40-60 40 60"/><path d="M660 150v-40l20-20 20 20v40"/></g>
+      <rect x="300" y="20" width="96" height="160" rx="8" fill="none" stroke="#e0473b" stroke-width="3"/>
+      <text x="348" y="196" text-anchor="middle" style="fill:#e0473b;font:600 12px system-ui">the video frame</text>
+      <path class="sv-acc" d="M640 28H460m0 0l10-6m-10 6l10 6"/>
+      <text class="sv-ta" x="550" y="18" text-anchor="middle">background slides left = camera moves right</text>
+    </svg>
+    <figcaption>Paint the background wider than the canvas, then tween it.</figcaption>
+  </figure>
+  <ol class="steps">
+    <li>On the Background layer, zoom out and paint a long strip that goes past the canvas edges. Krita keeps the paint outside the edge.</li>
+    <li>Add a <b>Transform Mask</b> to the background. Key it at frame 0 and slide it left at the last frame.</li>
+    <li>For depth (parallax), slide far things slowly and near things faster, each with its own transform mask.</li>
+  </ol>
+  <details><summary>Doesn't work? Common tween hiccups</summary>
+    <p>Make sure the <b>mask</b> (not the layer) is selected when you transform. Make sure the layer has only one drawing in that range, or the drawing will change while it moves. In older Krita (before 5.2) transform masks could not be keyed this way; update Krita.</p>
+  </details>
+</section>
+
+<!-- ================= 8 RECIPE SWAN ================= -->
+<section class="card" id="c8">
+  <h2><span class="n">8</span>Recipe: "the number 2 turns into a swan"</h2>
+  <p class="goal">Goal: a 10–15 second drawing reveal for a Reel. Viewers watch the 2 become a swan.</p>
+  <figure>
+    <svg viewBox="0 0 760 230" role="img" aria-label="Four stages: a number 2, a head and beak added, wing and water lines added, coloured swan">
+      <g transform="translate(20,0)">
+        <text class="sv-big" x="40" y="160">2</text>
+        <text class="sv-ts" x="70" y="210" text-anchor="middle">1 · the number</text>
+      </g>
+      <g transform="translate(200,0)">
+        <text class="sv-big" x="40" y="160">2</text>
+        <circle class="sv-ink" cx="62" cy="76" r="4" style="fill:var(--ink)"/><path class="sv-ink" d="M44 70l-16 6 16 4" style="stroke:var(--jpy);stroke-width:3"/>
+        <text class="sv-ts" x="70" y="210" text-anchor="middle">2 · eye and beak</text>
+      </g>
+      <g transform="translate(390,0)">
+        <text class="sv-big" x="40" y="160">2</text>
+        <circle class="sv-ink" cx="62" cy="76" r="4" style="fill:var(--ink)"/><path class="sv-ink" d="M44 70l-16 6 16 4" style="stroke:var(--jpy);stroke-width:3"/>
+        <path class="sv-ink" d="M70 150c30-50 80-40 90-6c-20 6-50 10-90 6z"/><path class="sv-ink" d="M90 135c15-12 35-14 50-8"/>
+        <path class="sv-acc" d="M20 176c20-8 40 8 60 0s40 8 60 0" />
+        <text class="sv-ts" x="80" y="210" text-anchor="middle">3 · wing, tail, water</text>
+      </g>
+      <g transform="translate(590,0)">
+        <path d="M60 150c30-50 80-40 90-6c-20 6-50 10-90 6z" fill="#fff" stroke="none" opacity=".9"/>
+        <text x="40" y="160" style="fill:var(--ink);font:700 88px Georgia,serif;opacity:.85">2</text>
+        <circle cx="62" cy="76" r="4" style="fill:var(--ink)"/><path class="sv-ink" d="M44 70l-16 6 16 4" style="stroke:var(--jpy);stroke-width:3"/>
+        <path class="sv-ink" d="M70 150c30-50 80-40 90-6c-20 6-50 10-90 6z"/>
+        <ellipse cx="90" cy="178" rx="70" ry="10" fill="#5aa9d6" opacity=".45"/>
+        <text class="sv-ts" x="80" y="210" text-anchor="middle">4 · colour and sparkle</text>
+      </g>
+      <g class="sv-dash"><path d="M150 110h40M340 110h40M560 110h30"/></g>
+    </svg>
+    <figcaption>Four stages. Each stage gets a few frames.</figcaption>
+  </figure>
+  <h3>Before you start</h3>
+  <ol class="steps">
+    <li>Open the <b>Recorder</b> docker and press Record (chapter 9). Now you also get a free "process" video.</li>
+    <li>New file 1080 × 1920, 12 fps, frames 0–143 (12 seconds).</li>
+    <li>Layers: Background (paper colour), <b>Number</b>, <b>Swan lines</b>, <b>Swan colour</b>, <b>Water</b>.</li>
+  </ol>
+  <h3>Draw it frame by frame</h3>
+  <ol class="steps">
+    <li><b>Frames 0–23 (2 seconds):</b> on <b>Number</b>, draw a big, round "2" with an ink brush on frame 0. Let it hold so viewers read the number.</li>
+    <li><b>Draw-on effect (optional):</b> instead of showing the 2 at once, draw it in 4–6 parts. Each part on a new <b>Create Duplicate Frame</b> 2 frames apart. The 2 "writes itself".</li>
+    <li><b>Frames 24–47:</b> on <b>Swan lines</b>, Duplicate Frame every 2–4 frames and add one small detail each time: the eye, then the beak, then a feather curl on the neck.</li>
+    <li><b>Frames 48–83:</b> keep duplicating and adding: the wing on the bottom curve of the 2, the tail, ripples on <b>Water</b>. Use onion skin to keep lines in place.</li>
+    <li><b>Frames 84–107:</b> on <b>Swan colour</b> (below the lines), fill white and blush pink in 2–3 steps. Use Inherit Alpha for soft shading.</li>
+    <li><b>Frames 108–143:</b> hold the finished swan. Add a tiny loop: ripples moving, or 2–3 sparkles that blink.</li>
+    <li>Play. Then export (chapter 10). Add a soft music bed and a text hook ("Can you draw a swan from a 2?") later (chapter 11).</li>
+  </ol>
+  <div class="tip"><b>Hook rule for Reels:</b> something must change in the first second. Start the 2 already half-drawn, or show the finished swan for 0.5 s, then "rewind" to the 2.</div>
+  <details><summary>More "number becomes…" ideas</summary>
+    <p>1 → candle · 3 → bird or bee wings · 4 → sailboat · 5 → snail · 6 → snail or ear · 7 → flamingo leg · 8 → snowman · 9 → balloon on a string · 0 → sun with a face.</p>
+  </details>
+</section>
+
+<!-- ================= 9 RECORDER ================= -->
+<section class="card" id="c9">
+  <h2><span class="n">9</span>The Recorder docker (timelapse)</h2>
+  <p class="goal">Goal: a sped-up video of your drawing process, made while you draw.</p>
+  <div class="word"><b>Timelapse</b>: a video that speeds time up. One hour of drawing becomes 30 seconds.</div>
+  <figure>
+    <svg viewBox="0 0 760 150" role="img" aria-label="Recorder flow: you draw, Recorder saves a snapshot every few seconds, Export joins snapshots into a video">
+      <rect class="sv-card" x="20" y="40" width="160" height="60" rx="12"/><text class="sv-tb" x="100" y="68" text-anchor="middle">You draw</text><text class="sv-ts" x="100" y="86" text-anchor="middle">as normal</text>
+      <rect class="sv-accsoft" x="250" y="40" width="200" height="60" rx="12"/><text class="sv-tb" x="350" y="68" text-anchor="middle">Recorder: snapshot</text><text class="sv-ts" x="350" y="86" text-anchor="middle">every 1–2 seconds</text>
+      <rect class="sv-bank" x="520" y="40" width="220" height="60" rx="12"/><text class="sv-tb" x="630" y="68" text-anchor="middle">Export → MP4</text><text class="sv-ts" x="630" y="86" text-anchor="middle">uses FFmpeg</text>
+      <g class="sv-dash"><path d="M180 70h70M450 70h70"/></g>
+    </svg>
+    <figcaption>Snapshots pile up in a folder. Export joins them into a video.</figcaption>
+  </figure>
+  <ol class="steps">
+    <li>Open <span class="menu">Settings › Dockers › Recorder</span>.</li>
+    <li>Click its settings (gear) button. Check the <b>folder</b> where snapshots go, the <b>capture interval</b> (1 s is good), and the quality.</li>
+    <li>Tick <b>Record automatically</b> if you want every drawing session recorded.</li>
+    <li>Press the record button and draw. A dot shows it is recording. It only captures the canvas, not your menus.</li>
+    <li>When done, click <b>Export</b> in the Recorder docker.</li>
+    <li>In the export window, set the <b>FPS</b> (30 for social), the size (resize to 1080 × 1920 for a Reel), how long to show the <b>finished picture</b> at the end (3–5 s is nice), and the <b>video format</b> (MP4).</li>
+    <li>Check the FFmpeg path is set (chapter 10), then export.</li>
+  </ol>
+  <div class="tip"><b>For "drawing process" Reels:</b> aim for 20–40 seconds. If the timelapse is too long, raise the export FPS or the capture interval.</div>
+  <details><summary>Disk space</summary>
+    <p>Each snapshot is an image file. A long session at a 1 s interval can make thousands of them. Delete the snapshot folder after you have exported (the Recorder has a button to clear old recordings, or use your file manager).</p>
+  </details>
+</section>
+
+<!-- ================= 10 EXPORT ================= -->
+<section class="card" id="c10">
+  <h2><span class="n">10</span>Exporting</h2>
+  <p class="goal">Goal: an MP4 that Instagram, YouTube and WhatsApp accept, plus PNGs for later effects.</p>
+  <div class="word"><b>FFmpeg</b>: a free helper program that turns pictures into video. Krita uses it to make MP4 and GIF.</div>
+  <div class="word"><b>H.264</b>: the most common video "language" (codec). Every phone plays it.</div>
+  <div class="word"><b>PNG sequence</b>: one PNG picture per frame, numbered 0001, 0002… No quality loss.</div>
+  <figure>
+    <svg viewBox="0 0 760 220" role="img" aria-label="One Krita file exports three ways: MP4 for posting, GIF for small loops, PNG sequence for editing later">
+      <rect class="sv-accsoft" x="20" y="80" width="150" height="60" rx="12"/><text class="sv-tb" x="95" y="106" text-anchor="middle">your .kra</text><text class="sv-ts" x="95" y="124" text-anchor="middle">Render Animation</text>
+      <rect class="sv-card" x="300" y="14" width="200" height="54" rx="12"/><text class="sv-tb" x="400" y="38" text-anchor="middle">MP4 (H.264)</text><text class="sv-ts" x="400" y="56" text-anchor="middle">post it</text>
+      <rect class="sv-card" x="300" y="84" width="200" height="54" rx="12"/><text class="sv-tb" x="400" y="108" text-anchor="middle">GIF</text><text class="sv-ts" x="400" y="126" text-anchor="middle">tiny loops, no sound</text>
+      <rect class="sv-card" x="300" y="154" width="200" height="54" rx="12"/><text class="sv-tb" x="400" y="178" text-anchor="middle">PNG sequence</text><text class="sv-ts" x="400" y="196" text-anchor="middle">best quality, for editing</text>
+      <rect class="sv-bank" x="580" y="14" width="160" height="54" rx="12"/><text class="sv-tb" x="660" y="46" text-anchor="middle">Reels / Shorts</text>
+      <rect class="sv-bank" x="580" y="154" width="160" height="54" rx="12"/><text class="sv-tb" x="660" y="178" text-anchor="middle">Effect Blender</text><text class="sv-ts" x="660" y="196" text-anchor="middle">or Kdenlive</text>
+      <g class="sv-dash"><path d="M170 110L300 41M170 110h130M170 110l130 71M500 41h80M500 181h80"/></g>
+    </svg>
+    <figcaption>Most of the time you want the MP4. Keep PNGs for big edits.</figcaption>
+  </figure>
+  <h3>Set up FFmpeg once</h3>
+  <ol class="steps">
+    <li>Recent official Krita builds usually come with FFmpeg built in. Try exporting first.</li>
+    <li>If Krita says FFmpeg is missing, install it: <code>sudo apt install ffmpeg</code> (or your system's package manager).</li>
+    <li>In the Render window, set the <b>FFmpeg</b> path to <code>/usr/bin/ffmpeg</code>. Find the real path with <code>which ffmpeg</code>.</li>
+  </ol>
+  <h3>Render an MP4 for a Reel</h3>
+  <ol class="steps">
+    <li>Save. Then <span class="menu">File › Render Animation…</span></li>
+    <li>Choose <b>Video</b>. Container <b>MP4</b>, then open the video settings and pick <b>H.264</b>.</li>
+    <li>Size <b>1080 × 1920</b>. Frame rate: keep your document's (12 or 24). Instagram is happy with 24 or 30.</li>
+    <li>Pick the output file name and folder. Click <b>OK</b>. Wait for the progress bar.</li>
+    <li>Watch the file once in a video player before you post.</li>
+  </ol>
+  <table>
+    <thead><tr><th>Setting</th><th>Reels / Shorts</th><th>YouTube</th></tr></thead>
+    <tbody>
+      <tr><td>Size</td><td class="num">1080 × 1920</td><td class="num">1920 × 1080</td></tr>
+      <tr><td>Container / codec</td><td>MP4 / H.264</td><td>MP4 / H.264</td></tr>
+      <tr><td>Frame rate</td><td class="num">24 or 30</td><td class="num">24, 25 or 30</td></tr>
+      <tr><td>Length</td><td>5–60 s works best</td><td>any</td></tr>
+    </tbody>
+  </table>
+  <h3>Export a PNG sequence (for effects later)</h3>
+  <ol class="steps">
+    <li><span class="menu">File › Render Animation…</span> → choose <b>Image Sequence</b>, format <b>PNG</b>.</li>
+    <li>Pick an <b>empty folder</b> and a base name like <code>swan_</code>. You get <code>swan_0000.png</code>, <code>swan_0001.png</code>…</li>
+    <li>Tip: you can tick both, so one render gives you the MP4 and the PNGs.</li>
+  </ol>
+  <details><summary>Why 12 fps becomes 24 or 30 on Instagram</summary>
+    <p>A 12 fps video plays fine, but some apps re-encode it. If you see stutter, render at 24 fps: in a 12 fps animation, set the document to 24 fps and hold every drawing for 2 frames (on 2s). The look stays the same.</p>
+  </details>
+  <details><summary>GIF tips</summary>
+    <p>GIFs get big fast and have only 256 colours. Keep them short (2–4 s), small (720 px wide or less), and with flat colours. No sound.</p>
+  </details>
+</section>
+
+<!-- ================= 11 EFFECTS + SOUND ================= -->
+<section class="card" id="c11">
+  <h2><span class="n">11</span>Adding effects and sound afterwards</h2>
+  <p class="goal">Goal: a finished post with glow, paper texture, voice and music.</p>
+  <figure>
+    <svg viewBox="0 0 760 140" role="img" aria-label="Krita PNG or MP4 goes to Effect Blender for looks, then Kdenlive for voice and music, then the final Reel">
+      <rect class="sv-accsoft" x="20" y="40" width="150" height="60" rx="12"/><text class="sv-tb" x="95" y="68" text-anchor="middle">Krita</text><text class="sv-ts" x="95" y="86" text-anchor="middle">PNG or MP4</text>
+      <rect class="sv-card" x="220" y="40" width="160" height="60" rx="12"/><text class="sv-tb" x="300" y="68" text-anchor="middle">Effect Blender</text><text class="sv-ts" x="300" y="86" text-anchor="middle">glow, grain, paper</text>
+      <rect class="sv-card" x="430" y="40" width="150" height="60" rx="12"/><text class="sv-tb" x="505" y="68" text-anchor="middle">Kdenlive</text><text class="sv-ts" x="505" y="86" text-anchor="middle">voice, music, text</text>
+      <rect class="sv-bank" x="630" y="40" width="110" height="60" rx="12"/><text class="sv-tb" x="685" y="74" text-anchor="middle">Reel</text>
+      <g class="sv-dash"><path d="M170 70h50M380 70h50M580 70h50"/></g>
+    </svg>
+    <figcaption>Krita draws. The next two tools dress it up.</figcaption>
+  </figure>
+  <h3>Effects: the Effect Blender app</h3>
+  <ol class="steps">
+    <li>Open the companion web app in this kit: <a href="../effect-blender/">Effect Blender</a>.</li>
+    <li>Load your exported MP4 or PNG sequence, add looks (soft glow, paper grain, vignette), and export.</li>
+  </ol>
+  <h3>Voice and music: Kdenlive (free)</h3>
+  <div class="word"><b>Video editor</b>: an app that puts clips, sound and text on one timeline.</div>
+  <ol class="steps">
+    <li>Install: <code>flatpak install flathub org.kde.kdenlive</code>.</li>
+    <li>New project → set the profile to vertical <b>1080 × 1920</b> at your frame rate.</li>
+    <li>Drag your video into the Project Bin, then onto the timeline. Drag your voice recording and music below it.</li>
+    <li>Lower the music under the voice (about −18 dB music vs voice near −6 dB is a safe start).</li>
+    <li>Add a title for the hook in the first second. Render as MP4 (H.264 + AAC audio).</li>
+  </ol>
+  <details><summary>Lip sync or poem timing inside Krita</summary>
+    <p>Krita can load one audio track to animate against: use the audio (speaker) control in the Timeline header to import a WAV or MP3. You will hear it while you scrub and play. Krita can include it in the render, but Kdenlive gives you more control for the final mix.</p>
+  </details>
+</section>
+
+<!-- ================= 12 PLAN ================= -->
+<section class="card" id="c12">
+  <h2><span class="n">12</span>A 30-day practice plan</h2>
+  <p class="goal">Goal: 20 minutes a day. Post what you learn. "I talk. We learn." — each day is a small clip where you say what you tried.</p>
+  <figure>
+    <svg viewBox="0 0 760 110" role="img" aria-label="Four weeks: lines and shapes, colour and layers, motion, stories">
+      <rect class="sv-accsoft" x="20" y="30" width="170" height="50" rx="10"/><text class="sv-tb" x="105" y="52" text-anchor="middle">Week 1</text><text class="sv-ts" x="105" y="70" text-anchor="middle">lines and shapes</text>
+      <rect class="sv-accsoft" x="205" y="30" width="170" height="50" rx="10"/><text class="sv-tb" x="290" y="52" text-anchor="middle">Week 2</text><text class="sv-ts" x="290" y="70" text-anchor="middle">colour and layers</text>
+      <rect class="sv-accsoft" x="390" y="30" width="170" height="50" rx="10"/><text class="sv-tb" x="475" y="52" text-anchor="middle">Week 3</text><text class="sv-ts" x="475" y="70" text-anchor="middle">motion</text>
+      <rect class="sv-bank" x="575" y="30" width="165" height="50" rx="10"/><text class="sv-tb" x="657" y="52" text-anchor="middle">Week 4</text><text class="sv-ts" x="657" y="70" text-anchor="middle">stories</text>
+    </svg>
+  </figure>
+  <table class="plan">
+    <thead><tr><th>Day</th><th>Practice</th><th>Post idea</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Lines: 1 page of straight, curved and spiral lines, stabilizer off then on</td><td>"Day 1: my hand vs the stabilizer"</td></tr>
+      <tr><td>2</td><td>Circles, ovals, hearts, stars with pencil</td><td>shape warm-up timelapse</td></tr>
+      <tr><td>3</td><td>Pencil vs ink: same flower twice</td><td>side by side</td></tr>
+      <tr><td>4</td><td>Numbers 0–9 big and round</td><td>"which one becomes an animal?"</td></tr>
+      <tr><td>5</td><td>Cute faces: 10 eyes and smiles</td><td>face sheet</td></tr>
+      <tr><td>6</td><td>A simple animal from circles (cat, bird)</td><td>recorder timelapse</td></tr>
+      <tr><td>7</td><td>Rest, or redraw day 1 and compare</td><td>"one week later"</td></tr>
+      <tr><td>8</td><td>Layers: lines over colour, groups</td><td>layer-reveal clip</td></tr>
+      <tr><td>9</td><td>Flat watercolour fills on paper colour</td><td>colour-in clip</td></tr>
+      <tr><td>10</td><td>Inherit Alpha shading and blush</td><td>before / after</td></tr>
+      <tr><td>11</td><td>A colour palette of 5 colours for one book</td><td>palette poll</td></tr>
+      <tr><td>12</td><td>Background: hills, sky, sun</td><td>scenery timelapse</td></tr>
+      <tr><td>13</td><td>Character on background</td><td>"meet my character"</td></tr>
+      <tr><td>14</td><td>First number reveal still: 2 → swan (no animation yet)</td><td>timelapse Reel</td></tr>
+      <tr><td>15</td><td>Animation workspace, 3-frame blink</td><td>blinking character</td></tr>
+      <tr><td>16</td><td>Bouncing ball on 2s</td><td>ball loop</td></tr>
+      <tr><td>17</td><td>Ball with squash and stretch</td><td>"spot the difference"</td></tr>
+      <tr><td>18</td><td>Anticipation: a jump</td><td>jump clip</td></tr>
+      <tr><td>19</td><td>Ease in/out: a swinging leaf</td><td>falling leaf</td></tr>
+      <tr><td>20</td><td>Transform-mask tween: moon rises</td><td>night sky</td></tr>
+      <tr><td>21</td><td>Opacity fade + camera pan</td><td>"title card" for your page</td></tr>
+      <tr><td>22</td><td>Animated 2 → swan reveal (chapter 8)</td><td>the reveal Reel</td></tr>
+      <tr><td>23</td><td>Another number: 8 → snowman</td><td>series post</td></tr>
+      <tr><td>24</td><td>Write a 4-line poem; plan 4 pictures</td><td>"poem storyboard"</td></tr>
+      <tr><td>25</td><td>Record your voice reading it</td><td>voice + still images</td></tr>
+      <tr><td>26</td><td>Animate line 1 and 2 of the poem</td><td>work in progress</td></tr>
+      <tr><td>27</td><td>Animate line 3 and 4</td><td>work in progress</td></tr>
+      <tr><td>28</td><td>Effects and sound (chapter 11)</td><td>sneak peek</td></tr>
+      <tr><td>29</td><td>Polish: timing, the first-second hook</td><td>"what I fixed"</td></tr>
+      <tr><td>30</td><td><b>A full 10-second animated story</b>, exported for Reels</td><td>the premiere + timelapse</td></tr>
+    </tbody>
+  </table>
+  <div class="tip"><b>Little by little:</b> missing a day is fine. Never miss two in a row.</div>
+</section>
+
+<!-- ================= 13 CHEAT + FIXES ================= -->
+<section class="card" id="c13">
+  <h2><span class="n">13</span>Cheat sheet and fixes</h2>
+  <p class="goal">Print this page and keep it by your screen.</p>
+  <table class="cheat">
+    <thead><tr><th>Keys</th><th>What it does</th><th>Keys</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>B</kbd></td><td>Brush tool</td><td><kbd>.</kbd> / <kbd>,</kbd></td><td>Next / previous frame</td></tr>
+      <tr><td><kbd>E</kbd></td><td>Eraser mode on/off</td><td><kbd>Alt</kbd>+<kbd>.</kbd> / <kbd>Alt</kbd>+<kbd>,</kbd></td><td>Next / previous drawing (keyframe)</td></tr>
+      <tr><td><kbd>[</kbd> / <kbd>]</kbd></td><td>Brush smaller / bigger</td><td><kbd>Ctrl</kbd>+<kbd>T</kbd></td><td>Transform tool</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Undo</td><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>Redo</td></tr>
+      <tr><td><kbd>Space</kbd>+drag</td><td>Move around the canvas</td><td><kbd>Ctrl</kbd>+<kbd>Space</kbd>+drag</td><td>Zoom</td></tr>
+      <tr><td><kbd>Shift</kbd>+<kbd>Space</kbd>+drag</td><td>Rotate the canvas</td><td><kbd>5</kbd></td><td>Reset rotation</td></tr>
+      <tr><td><kbd>M</kbd></td><td>Mirror view (check your drawing)</td><td><kbd>Tab</kbd></td><td>Hide / show dockers</td></tr>
+      <tr><td><kbd>Insert</kbd></td><td>New paint layer</td><td><kbd>Ctrl</kbd>+<kbd>J</kbd></td><td>Duplicate layer</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>G</kbd></td><td>Group layers</td><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd></td><td>Quick clipping group</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd></td><td>Deselect all</td><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Save</td></tr>
+      <tr><td>Right-click canvas</td><td>Favourite brushes ring</td><td><kbd>Ctrl</kbd>+<kbd>N</kbd></td><td>New document</td></tr>
+    </tbody>
+  </table>
+  <p class="mut" style="font-size:13px">All keys can be changed in <span class="menu">Settings › Configure Krita › Keyboard Shortcuts</span>.</p>
+
+  <h3>Common problems</h3>
+  <details open><summary>The canvas is tilted or flipped</summary>
+    <p>You rotated it with <kbd>Shift</kbd>+<kbd>Space</kbd> or mirrored it with <kbd>M</kbd>. Press <kbd>5</kbd> or use <span class="menu">View › Canvas › Reset Rotation</span>. Press <kbd>M</kbd> again to un-mirror. Your picture itself did not change.</p>
+  </details>
+  <details><summary>The brush does not draw</summary>
+    <ul>
+      <li>Is the layer <b>visible</b> (eye on) and <b>not locked</b>?</li>
+      <li>Is a <b>selection</b> active elsewhere? Paint only lands inside it. Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>.</li>
+      <li>Is <b>eraser mode</b> on? Press <kbd>E</kbd>.</li>
+      <li>Is the brush <b>opacity</b> or <b>size</b> near 0 (top toolbar)?</li>
+      <li>Did you select a <b>mask</b> or a <b>group</b> instead of a paint layer?</li>
+      <li>Is <b>Lock Alpha</b> on for an empty layer?</li>
+    </ul>
+  </details>
+  <details><summary>Render Animation is greyed out or fails</summary>
+    <p>Save the file first. Then check the <b>FFmpeg</b> path in the Render window (<code>/usr/bin/ffmpeg</code>; check with <code>which ffmpeg</code>). Flatpak Krita cannot see every system folder; if the path fails there, use its built-in FFmpeg or the AppImage. Also make sure the document has more than one frame.</p>
+  </details>
+  <details><summary>The drawing shows on every frame / frames don't change</summary>
+    <p>The drawing was made before the layer had frames, so it is a still layer. Click a timeline cell on that layer and use <b>Create Blank Frame</b>. Remember: empty cells after a drawing keep showing it (a hold).</p>
+  </details>
+  <details><summary>Playback is slow or laggy</summary>
+    <ul>
+      <li>Lower the canvas size: <span class="menu">Image › Scale Image to New Size</span> (1080 × 1920 is enough).</li>
+      <li>Merge or hide layers you are not using.</li>
+      <li>In <span class="menu">Settings › Configure Krita › Performance</span>, give Krita more RAM and check the animation cache settings.</li>
+      <li>Lower the playback preview quality in the Timeline settings, if your version offers it. The final render is not affected.</li>
+      <li>Close other big apps (browsers eat RAM).</li>
+    </ul>
+  </details>
+  <details><summary>Krita crashed. Is my work lost?</summary>
+    <p>Usually not. Re-open Krita: it offers to restore the autosave. Also save numbered versions with <span class="menu">File › Save Incremental Version</span>.</p>
+  </details>
+  <details><summary>Pen pressure doesn't work</summary>
+    <p>Check <span class="menu">Settings › Configure Krita › Tablet settings</span>. Make sure the brush preset uses pressure (most do). Unplug and re-plug the tablet, then restart Krita.</p>
+  </details>
+</section>
+
+<p class="mut" style="text-align:center;font-size:13px">Krita Studio Kit · Booklet 1 · Krita is free software by the KDE community (krita.org).</p>
+</main>
+</div>
+</div>
+
+<script>
+/* ui-style theme switch: light / dark, starts on the system setting, remembers the choice.
+   Put the one-line pre-paint script from SKILL.md in <head>, and this at the end of <body>.
+   It wires every [data-theme-toggle] button, or adds one at the top right if there is none.
+   With JavaScript off there is no button and the page simply follows the system. */
+(() => {
+  const STORAGE_KEY = 'ui-theme';
+  const root = document.documentElement;
+  const systemDark = matchMedia('(prefers-color-scheme: dark)');
+  const SUN =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor"/>' +
+    '<path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1" ' +
+    'stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  const MOON =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z" fill="currentColor"/></svg>';
+
+  let buttons = [...document.querySelectorAll('[data-theme-toggle]')];
+  if (!buttons.length) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'float';
+    document.body.append(button);
+    buttons = [button];
+  }
+
+  const currentTheme = () => root.dataset.theme || (systemDark.matches ? 'dark' : 'light');
+
+  // The button shows the theme one click switches to.
+  const paint = (button) => {
+    const isDark = currentTheme() === 'dark';
+    button.innerHTML = (isDark ? SUN : MOON) + '<span>' + (isDark ? 'Light' : 'Dark') + '</span>';
+    button.setAttribute('aria-label', isDark ? 'Switch to the light theme' : 'Switch to the dark theme');
+    button.hidden = false;
+  };
+
+  const toggle = () => {
+    root.dataset.theme = currentTheme() === 'dark' ? 'light' : 'dark';
+    try {
+      localStorage.setItem(STORAGE_KEY, root.dataset.theme);
+    } catch (_) {
+      // Storage blocked (private window): the switch still works until the page closes.
+    }
+    buttons.forEach(paint);
+  };
+
+  buttons.forEach((button) => {
+    button.type = 'button';
+    button.classList.add('theme-toggle');
+    button.addEventListener('click', toggle);
+    paint(button);
+  });
+  systemDark.addEventListener('change', () => buttons.forEach(paint));
+})();
+
+</script>
+<script>
+(() => {
+  // highlight the chapter you are reading in the sticky table of contents
+  const links = [...document.querySelectorAll('.toc a')];
+  const byId = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          links.forEach(a => a.classList.remove('on'));
+          const a = byId.get(e.target.id);
+          if (a) a.classList.add('on');
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+    byId.forEach((_, id) => { const s = document.getElementById(id); if (s) io.observe(s); });
+  }
+  const all = () => document.querySelectorAll('main details');
+  document.getElementById('openAll').addEventListener('click', () => all().forEach(d => d.open = true));
+  document.getElementById('closeAll').addEventListener('click', () => all().forEach(d => d.open = false));
+  // print: open every fold so the PDF has everything, then restore
+  let was = [];
+  addEventListener('beforeprint', () => { was = [...all()].map(d => d.open); all().forEach(d => d.open = true); });
+  addEventListener('afterprint', () => all().forEach((d, i) => d.open = was[i]));
+})();
+</script>
+</body></html>
