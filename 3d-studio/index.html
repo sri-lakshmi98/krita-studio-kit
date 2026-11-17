@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tiny 3D Studio</title>
+<meta name="description" content="An easy, light 3D maker in your browser. Cute shapes, simple animation, Reels-size pictures and videos.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2l9 5v10l-9 5-9-5V7z' fill='%2356c2a6'/%3E%3C/svg%3E">
+<script>try{const t=localStorage.getItem('ui-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(_){}</script>
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l9 5v10l-9 5-9-5V7z" fill="var(--acc)"/><path d="M3 7l9 5 9-5M12 12v10" stroke="var(--card)" stroke-width="1.5" fill="none"/></svg><b>Tiny 3D Studio</b></div>
+  <div class="grp">
+    <button id="bUndo" data-icon="undo" title="Undo (Ctrl+Z)" aria-label="Undo"></button>
+    <button id="bRedo" data-icon="redo" title="Redo (Ctrl+Shift+Z)" aria-label="Redo"></button>
+  </div>
+  <div class="grp seg" id="modeBtns">
+    <button data-mode="translate" data-icon="move" title="Move (W or G)">Move</button>
+    <button data-mode="rotate" data-icon="rotate" title="Turn (E or R)">Turn</button>
+    <button data-mode="scale" data-icon="scale" title="Size (S)">Size</button>
+    <button id="bSnap" data-icon="snap" title="Snap to steps (N)">Snap</button>
+  </div>
+  <div class="grp seg" id="viewBtns">
+    <button data-view="front" title="Front view (1)">Front</button>
+    <button data-view="side" title="Side view (3)">Side</button>
+    <button data-view="top" title="Top view (7)">Top</button>
+    <button data-view="persp" title="3D view (0)">3D</button>
+    <button id="bFrameSel" data-icon="frame" title="Zoom to the picked thing (F)">Zoom to</button>
+  </div>
+  <div class="spacer"></div>
+  <label class="grp aspect" title="Picture and video size">
+    <select id="aspect">
+      <option value="reel">Reel 9:16</option>
+      <option value="square">Square 1:1</option>
+      <option value="wide">Wide 16:9</option>
+    </select>
+  </label>
+  <div class="grp">
+    <button id="bNew" data-icon="new" title="New empty scene">New</button>
+    <button id="bOpen" data-icon="open" title="Open a saved project (.json)">Open</button>
+    <button id="bSave" data-icon="save" title="Save the project (Ctrl+S)">Save</button>
+    <div class="menu-wrap">
+      <button id="bExport" class="btn primary" data-icon="export" aria-haspopup="true" aria-expanded="false">Export</button>
+      <div id="exportMenu" class="menu" hidden>
+        <button data-export="png">Picture <small>PNG</small></button>
+        <button data-export="webm">Video <small>WebM</small></button>
+        <hr>
+        <button data-export="glb">3D model <small>GLB</small></button>
+        <button data-export="obj">3D model <small>OBJ</small></button>
+        <button data-export="stl">3D print <small>STL</small></button>
+      </div>
+    </div>
+    <button id="bHelp" data-icon="help" title="Help and keys (?)" aria-label="Help"></button>
+    <button data-theme-toggle></button>
+  </div>
+</header>
+
+<aside id="left" aria-label="Add things">
+  <h3>Add</h3>
+  <div class="adds" id="addBasic"></div>
+  <h3>Cute</h3>
+  <div class="adds" id="addCute"></div>
+  <h3>Bring in</h3>
+  <div class="adds" id="addImport">
+    <button class="add" data-import="card"><span data-icon="picture"></span>Picture</button>
+    <button class="add" data-import="backdrop"><span data-icon="backdrop"></span>Backdrop</button>
+    <button class="add" data-import="model"><span data-icon="model"></span>3D file</button>
+  </div>
+</aside>
+
+<main id="view">
+  <div id="frame" aria-hidden="true"><span></span></div>
+  <div id="hint" class="hint" hidden>
+    <b>Start in 3 steps</b>
+    <ol>
+      <li>Add a shape on the left.</li>
+      <li>Click it, then drag the arrows.</li>
+      <li>Press <b>Add key</b>, move the time, change it, <b>Add key</b> again, then Play.</li>
+    </ol>
+    <button id="hintOff" class="btn primary">Got it</button>
+  </div>
+  <div id="boot" class="boot">Loading the 3D engine…</div>
+</main>
+
+<aside id="right" aria-label="Details">
+  <h3>In the scene</h3>
+  <ul id="outliner" class="outliner"></ul>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-tab="pObj">Thing</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="pScene">Scene</button>
+  </div>
+
+  <section id="pObj" class="panel">
+    <p id="noSel" class="mut">Click a thing to change it.</p>
+    <div id="objFields" hidden>
+      <label class="row"><span>Name</span><input id="fName" maxlength="40"></label>
+      <div class="xyz" data-prop="position"><span>Place</span><input type="number" step="0.1"><input type="number" step="0.1"><input type="number" step="0.1"></div>
+      <div class="xyz" data-prop="rotation"><span>Turn °</span><input type="number" step="5"><input type="number" step="5"><input type="number" step="5"></div>
+      <div class="xyz" data-prop="scale"><span>Size</span><input type="number" step="0.1" min="0.01"><input type="number" step="0.1" min="0.01"><input type="number" step="0.1" min="0.01"></div>
+      <p class="xyzhint mut">left–right · up–down · front–back</p>
+      <div id="textRow" class="row" hidden><span>Words</span><input id="fText" maxlength="40"><button id="fTextGo">Set</button></div>
+      <h3>Look</h3>
+      <div class="chips" id="matChips"></div>
+      <div class="colorrow"><input type="color" id="fColor" title="Any colour"><div id="swatches" class="swatches"></div></div>
+      <label class="row"><span>Solid</span><input type="range" id="fOpacity" min="0.1" max="1" step="0.05"></label>
+      <h3>Moves by itself</h3>
+      <div class="chips" id="autoChips"></div>
+      <h3>Do</h3>
+      <div class="actions">
+        <button id="aDup" data-icon="copy" title="Ctrl+D">Copy</button>
+        <button id="aDel" data-icon="trash" title="Delete">Delete</button>
+        <button id="aFloor" data-icon="floor">To floor</button>
+        <button id="aGroup" data-icon="group" title="Ctrl+G">Group</button>
+        <button id="aUngroup" data-icon="ungroup" title="Ctrl+Shift+G">Ungroup</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="pScene" class="panel" hidden>
+    <h3>Sky</h3>
+    <div class="chips" id="bgChips"></div>
+    <label class="row"><span>Plain</span><input type="color" id="bgColor"></label>
+    <h3>Floor</h3>
+    <div class="row"><label class="tog"><input type="checkbox" id="sGround"> Floor</label><input type="color" id="groundColor" title="Floor colour"><label class="tog"><input type="checkbox" id="sGrid"> Grid</label></div>
+    <h3>Light</h3>
+    <div class="chips" id="lightChips"></div>
+    <label class="row"><span>Soft light</span><input type="range" id="sAmb" min="0" max="2" step="0.05"></label>
+    <label class="tog"><input type="checkbox" id="sShadows"> Shadows</label>
+  </section>
+</aside>
+
+<footer id="timeline" aria-label="Timeline">
+  <button id="tPlay" class="round" data-icon="play" title="Play / pause (Space)" aria-label="Play"></button>
+  <button id="tLoop" class="on" data-icon="loop" title="Loop" aria-label="Loop"></button>
+  <span id="tTime" class="num">0.0 s</span>
+  <div id="track" title="Drag to move the time">
+    <div id="ticks"></div><div id="keys"></div><div id="head"></div>
+  </div>
+  <button id="tKey" class="btn primary" data-icon="key" title="Save the pose at this time (K)">Add key</button>
+  <button id="tDelKey" title="Remove the key at this time">Remove key</button>
+  <label class="tog" title="Speed up and slow down gently between keys"><input type="checkbox" id="tEase"> Smooth</label>
+  <label class="tog">Length <input id="tLen" type="number" min="1" max="60" step="1" value="5"> s</label>
+  <span id="poseNote" class="chip warn" hidden>Add key to keep this pose</span>
+</footer>
+
+<dialog id="help" class="dlg">
+  <h2>Keys</h2>
+  <table>
+    <tbody>
+      <tr><td><kbd>Click</kbd></td><td>Pick a thing</td><td><kbd>Shift</kbd>+<kbd>Click</kbd></td><td>Pick more</td></tr>
+      <tr><td><kbd>W</kbd> / <kbd>G</kbd></td><td>Move</td><td><kbd>E</kbd> / <kbd>R</kbd></td><td>Turn</td></tr>
+      <tr><td><kbd>S</kbd></td><td>Size</td><td><kbd>N</kbd></td><td>Snap on/off</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Zoom to picked</td><td><kbd>Esc</kbd></td><td>Pick nothing</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>D</kbd></td><td>Copy</td><td><kbd>Del</kbd> / <kbd>X</kbd></td><td>Delete</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Undo</td><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>Redo</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>G</kbd></td><td>Group</td><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd></td><td>Ungroup</td></tr>
+      <tr><td><kbd>H</kbd></td><td>Hide / show</td><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Save project</td></tr>
+      <tr><td><kbd>Space</kbd></td><td>Play / pause</td><td><kbd>K</kbd></td><td>Add key</td></tr>
+      <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Step time</td><td><kbd>1</kbd> <kbd>3</kbd> <kbd>7</kbd> <kbd>0</kbd></td><td>Front, side, top, 3D</td></tr>
+    </tbody>
+  </table>
+  <h3>Camera</h3>
+  <p>Left-drag turns around · right-drag slides · wheel zooms.</p>
+  <details>
+    <summary>Use a Krita drawing</summary>
+    <p>In Krita: <i>File → Export</i> as PNG (keep the see-through background). Here: <b>Picture</b> makes a standing card, <b>Backdrop</b> a big wall behind everything.</p>
+  </details>
+  <form method="dialog"><button class="btn primary">Close</button></form>
+</dialog>
+
+<dialog id="textDlg" class="dlg">
+  <form method="dialog" id="textForm">
+    <h2>3D text</h2>
+    <input id="textIn" maxlength="40" placeholder="Hello!" autocomplete="off">
+    <div class="row end"><button type="button" id="textCancel">Cancel</button><button value="ok" class="btn primary">Add</button></div>
+  </form>
+</dialog>
+
+<div id="busy" class="busy" hidden><div class="card"><b id="busyText">Working…</b><div class="bar-out"><div id="busyBar"></div></div><button id="busyCancel">Stop</button></div></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+  // If the 3D engine cannot load (offline, very old browser), say so kindly.
+  (function () {
+    var boot = document.getElementById('boot');
+    var hasMap = window.HTMLScriptElement && HTMLScriptElement.supports && HTMLScriptElement.supports('importmap');
+    if (!hasMap) { boot.innerHTML = '<b>This browser is too old for Tiny 3D Studio.</b><br>Please use a recent Chrome, Edge or Firefox.'; boot.classList.add('err'); return; }
+    setTimeout(function () {
+      if (!window.__t3dReady && !boot.classList.contains('err')) {
+        boot.innerHTML = '<b>The 3D engine did not load.</b><br>Check the internet connection, then reload the page.';
+        boot.classList.add('err');
+      }
+    }, 15000);
+  })();
+</script>
+<script type="module" src="app.js"></script>
+<script src="theme-toggle.js"></script>
+</body>
+</html>
